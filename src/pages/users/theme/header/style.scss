@@ -1,0 +1,103 @@
+@use "sass:map";
+
+@import "src/style/pages/_theme";
+
+.header {
+  .header__top {
+    background-color: #ffffff;
+    padding: 10px 0;
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header__logo__main {
+      width: 150px;
+    }
+
+    .header__search {
+      display: flex;
+      align-items: center;
+      background: white;
+      padding: 5px;
+      border-radius: 20px;
+
+      input {
+        border: 2px solid rgba(0, 0, 0, 0.1); // Viền đen
+        outline: none;
+        padding: 5px;
+        border-radius: 10px; // Bo góc nhẹ để đẹp hơn
+      }
+
+      button {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        font-size: 16px;
+        color: map.get($theme-colors, "main");
+      }
+    }
+
+    .header__account {
+      display: flex;
+      align-items: center;
+      color: black;
+      position: relative;
+
+      .cart-icon {
+        color: black;
+        margin-left: 10px;
+        font-size: 24px; // Tăng kích thước icon để dễ căn chỉnh
+        cursor: pointer;
+        position: relative;
+      }
+
+      span {
+        position: absolute;
+        top: 0; // Đẩy lên trên cùng
+        right: 0; // Đẩy sát về bên phải
+        transform: translate(
+          50%,
+          -50%
+        ); // Dịch chuyển ra ngoài góc phải một chút
+        background-color: red;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+
+  .header__nav {
+    background: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+    .container {
+      ul {
+        display: flex;
+        list-style: none;
+        padding: 10px 0;
+        justify-content: center;
+
+        li {
+          margin: 0 15px;
+          cursor: pointer;
+          font-weight: bold;
+          color: map.get($theme-colors, "bold-text");
+
+          &:hover {
+            color: map.get($theme-colors, "main");
+          }
+        }
+      }
+    }
+  }
+}
