@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useState } from "react";
 import ProductFilters from "../components/ProductFilters";
 import SortDropdown from "../components/SortDropdown";
@@ -7,17 +7,24 @@ import Pagination from "../components/Pagination";
 import allProducts from "../components/data/products";
 import categoryMap from "../components/data/categories";
 
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
 export default function CategoryPage() {
   const { slug } = useParams();
+  const query = useQuery();
+  const initialSearch = query.get("search") || "";
+
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [sortOption, setSortOption] = useState("default");
   const itemsPerPage = 8;
 
   let filteredProducts = allProducts
-    .filter((p) => p.category === slug)
+    .filter((p) => slug === "all" || p.category === slug)
     .filter((p) =>
       searchTerm.trim() === "" ? true : p.name.toLowerCase().includes(searchTerm.toLowerCase())
     )

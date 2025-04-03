@@ -7,6 +7,7 @@ import UserMenu from "./UserMenu";
 import CartMenu from "./CartMenu";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+import allProducts from "./data/products";
 import { useCart } from "../context/CartContext"; // ✅ Sử dụng context thay vì cart mẫu
 
 export default function Header() {
@@ -21,10 +22,10 @@ export default function Header() {
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const sampleProducts = ["Sản phẩm A", "Sản phẩm B", "Sản phẩm C", "Sản phẩm D"];
-  const suggestions = sampleProducts.filter((product) =>
-    product.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const suggestions = allProducts
+  .map((p) => p.name)
+  .filter((name) => name.toLowerCase().includes(searchQuery.toLowerCase()))
+  .slice(0, 6);
 
   const handleLogin = (e) => {
     e.preventDefault();
