@@ -7,6 +7,7 @@ import UserMenu from "./UserMenu";
 import CartMenu from "./CartMenu";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+import ForgotPasswordForm from "./ForgotPasswordForm";
 import allProducts from "./data/products";
 import { useCart } from "../context/CartContext"; // ✅ Sử dụng context thay vì cart mẫu
 
@@ -16,16 +17,14 @@ export default function Header() {
   const [user, setUser] = useState({ isLoggedIn: false, name: "" });
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
-  const { cartItems } = useCart(); // ✅ Lấy dữ liệu thực từ context
-
-  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const { cartItems } = useCart();
 
   const suggestions = allProducts
-  .map((p) => p.name)
-  .filter((name) => name.toLowerCase().includes(searchQuery.toLowerCase()))
-  .slice(0, 6);
+    .map((p) => p.name)
+    .filter((name) => name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .slice(0, 6);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -41,6 +40,28 @@ export default function Header() {
 
   const handleLogout = () => {
     setUser({ isLoggedIn: false, name: "" });
+  };
+
+  const handleForgot = (e) => {
+    e.preventDefault();
+    alert("Liên kết khôi phục đã được gửi tới email của bạn!");
+    setShowForgotModal(false);
+  };
+
+  const switchToLogin = () => {
+    setShowRegisterModal(false);
+    setShowForgotModal(false);
+    setTimeout(() => setShowLoginModal(true), 300);
+  };
+
+  const switchToRegister = () => {
+    setShowLoginModal(false);
+    setTimeout(() => setShowRegisterModal(true), 300);
+  };
+
+  const switchToForgot = () => {
+    setShowLoginModal(false);
+    setTimeout(() => setShowForgotModal(true), 300);
   };
 
   return (
@@ -84,7 +105,11 @@ export default function Header() {
         title="Đăng nhập"
         onClose={() => setShowLoginModal(false)}
       >
-        <LoginForm handleLogin={handleLogin} />
+        <LoginForm
+          handleLogin={handleLogin}
+          switchToRegister={switchToRegister}
+          switchToForgot={switchToForgot}
+        />
       </Modal>
 
       {/* Modal đăng ký */}
@@ -93,7 +118,22 @@ export default function Header() {
         title="Đăng ký"
         onClose={() => setShowRegisterModal(false)}
       >
-        <RegisterForm handleRegister={handleRegister} />
+        <RegisterForm
+          handleRegister={handleRegister}
+          switchToLogin={switchToLogin}
+        />
+      </Modal>
+
+      {/* Modal quên mật khẩu */}
+      <Modal
+        show={showForgotModal}
+        title="Khôi phục mật khẩu"
+        onClose={() => setShowForgotModal(false)}
+      >
+        <ForgotPasswordForm
+          handleForgot={handleForgot}
+          switchToLogin={switchToLogin}
+        />
       </Modal>
     </>
   );

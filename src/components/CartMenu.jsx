@@ -15,7 +15,7 @@ export default function CartMenu() {
       onMouseEnter={() => setCartHover(true)}
       onMouseLeave={() => setCartHover(false)}
     >
-      <button className="relative p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 transition duration-300">
+      <button className="relative p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 transition duration-500">
         <ShoppingCart size={20} className="text-gray-800 dark:text-white" />
         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">
           {totalQuantity}

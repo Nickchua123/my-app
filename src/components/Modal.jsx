@@ -3,12 +3,12 @@ function Modal({ show, title, children, onClose }) {
     if (!show) return null;
     return (
       <div 
-        className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 backdrop-blur-md"
+        className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 "
         role="dialog"
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
       >
-        <div className="relative bg-white rounded-md p-6 w-80">
+        <div className="relative bg-white rounded-md p-6 w-100">
           <h2 id="modal-title" className="text-xl font-semibold mb-4">{title}</h2>
           {children}
           <button
