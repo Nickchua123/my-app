@@ -1,17 +1,21 @@
-// src/App.jsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Header from "./components/Header";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import CategoryPage from "./pages/CategoryPage";
+import { CartProvider } from "./context/CartContext";
+import HomePage from "./pages/HomePage";
+import Layout from "./components/Layout";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Header />
-      <Routes>
-        <Route path="/category/:slug" element={<CategoryPage />} />
-        {/* Thêm các route khác nếu có */}
-      </Routes>
-    </BrowserRouter>
+    <CartProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/category/:slug" element={<CategoryPage />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </CartProvider>
   );
 }
 

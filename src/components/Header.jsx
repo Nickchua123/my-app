@@ -1,31 +1,27 @@
 import { useState } from "react";
-import { ShoppingCart, Search, User, Menu } from "lucide-react";
+import { ShoppingCart, Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 import Modal from "./Modal";
-import sampleCartItems from "./data/cart";
 import SearchBar from "./SearchBar";
 import UserMenu from "./UserMenu";
 import CartMenu from "./CartMenu";
-import LoginForm from "./LoginForm"; // ✅ Form đăng nhập riêng
-import RegisterForm from "./RegisterForm"; // ✅ Form đăng ký riêng
+import LoginForm from "./LoginForm";
+import RegisterForm from "./RegisterForm";
+import { useCart } from "../context/CartContext"; // ✅ Sử dụng context thay vì cart mẫu
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [cartHover, setCartHover] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState({ isLoggedIn: false, name: "" });
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
-  const sampleProducts = [
-    "Sản phẩm A",
-    "Sản phẩm B",
-    "Sản phẩm C",
-    "Sản phẩm D",
-  ];
+  const { cartItems } = useCart(); // ✅ Lấy dữ liệu thực từ context
 
-  const totalAmount = sampleCartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-  const totalQuantity = sampleCartItems.reduce((total, item) => total + item.quantity, 0);
+  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  const sampleProducts = ["Sản phẩm A", "Sản phẩm B", "Sản phẩm C", "Sản phẩm D"];
   const suggestions = sampleProducts.filter((product) =>
     product.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -50,10 +46,10 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-md py-4 px-6 flex flex-col md:flex-row md:items-center md:justify-between">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <ShoppingCart size={28} className="text-gray-900 dark:text-white" />
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">My Shop</h1>
-          </div>
+          </Link>
           <button
             className="md:hidden p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 transition duration-300"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -77,18 +73,12 @@ export default function Header() {
             handleLogout={handleLogout}
           />
 
-          <CartMenu
-            cartHover={cartHover}
-            setCartHover={setCartHover}
-            totalQuantity={totalQuantity}
-            totalAmount={totalAmount}
-            cartItems={sampleCartItems}
-          />
+          <CartMenu />
         </div>
       </header>
 
-      {/* ✅ Modal đăng nhập */}
-      <Modal 
+      {/* Modal đăng nhập */}
+      <Modal
         show={showLoginModal}
         title="Đăng nhập"
         onClose={() => setShowLoginModal(false)}
@@ -96,8 +86,8 @@ export default function Header() {
         <LoginForm handleLogin={handleLogin} />
       </Modal>
 
-      {/* ✅ Modal đăng ký */}
-      <Modal 
+      {/* Modal đăng ký */}
+      <Modal
         show={showRegisterModal}
         title="Đăng ký"
         onClose={() => setShowRegisterModal(false)}
