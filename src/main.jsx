@@ -7,6 +7,9 @@ import Admin from './admin.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Admin/>
-    {/* <App /> */}
+    {/* <UserProvider>
+  <App />
+</UserProvider> */}
+
   </StrictMode>,
 )

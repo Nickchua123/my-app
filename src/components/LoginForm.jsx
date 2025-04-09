@@ -1,49 +1,58 @@
-export default function LoginForm({ handleLogin, switchToRegister, switchToForgot }) {
+// UserLoginPage.jsx – Trang đăng nhập người dùng
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
+
+export default function UserLoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login } = useUser();
+  const navigate = useNavigate();
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const success = login(email, password);
+    if (success) {
+      alert("🎉 Đăng nhập thành công");
+      navigate("/");
+    } else {
+      alert("❌ Email hoặc mật khẩu không đúng");
+    }
+  };
+
   return (
-    <form onSubmit={handleLogin} className="space-y-5 text-base md:text-lg">
-      <div className="space-y-2">
-        <label className="block text-gray-700 dark:text-gray-300 font-semibold">Email</label>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form
+        onSubmit={handleLogin}
+        className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm space-y-4"
+      >
+        <h2 className="text-2xl font-bold text-center">🔐 Đăng nhập người dùng</h2>
+
         <input
           type="email"
-          placeholder="you@example.com"
+          placeholder="Email"
           required
-          className="w-full py-3 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-800 dark:text-white"
+          className="w-full p-3 border rounded"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
-      </div>
-      <div className="space-y-2">
-        <label className="block text-gray-700 dark:text-gray-300 font-semibold">Mật khẩu</label>
+
         <input
           type="password"
-          placeholder="Nhập mật khẩu"
+          placeholder="Mật khẩu"
           required
-          className="w-full py-3 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-800 dark:text-white"
+          className="w-full p-3 border rounded"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
-        <div className="text-right">
-          <button
-            type="button"
-            onClick={switchToForgot}
-            className="text-sm text-blue-600 hover:underline mt-1"
-          >
-            Quên mật khẩu?
-          </button>
-        </div>
-      </div>
-      <button
-        type="submit"
-        className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition duration-300 font-semibold"
-      >
-        Đăng nhập
-      </button>
-      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-        Bạn chưa có tài khoản?{' '}
+
         <button
-          type="button"
-          onClick={switchToRegister}
-          className="text-blue-600 hover:underline font-medium"
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
-          Đăng ký ngay!
+          Đăng nhập
         </button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

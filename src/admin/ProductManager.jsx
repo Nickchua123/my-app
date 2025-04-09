@@ -1,8 +1,9 @@
-// ✅ ProductManager.jsx (thêm preview ảnh trong popup xem chi tiết)
+// ✅ ProductManager.jsx – cập nhật để ẩn nút thêm/sửa/xoá nếu là viewer
 import { useEffect, useState } from "react";
 import allProducts from "../components/data/products";
 import ProductForm from "./ProductForm";
 import useCategories from "../hooks/useCategories";
+import useReviewStats from "../hooks/useReviewStats";
 
 export default function ProductManager() {
   const [products, setProducts] = useState([]);
@@ -13,6 +14,12 @@ export default function ProductManager() {
   const [previewImage, setPreviewImage] = useState(null);
 
   const categories = useCategories();
+  const avgRatings = useReviewStats();
+
+  const currentAdmin = localStorage.getItem("currentAdmin");
+  const admins = JSON.parse(localStorage.getItem("admins")) || [];
+  const currentRole = admins.find((a) => a.email === currentAdmin)?.role;
+  const isViewer = currentRole === "viewer";
 
   useEffect(() => {
     const stored = localStorage.getItem("products");
@@ -30,6 +37,7 @@ export default function ProductManager() {
   };
 
   const handleDelete = (id) => {
+    if (isViewer) return;
     if (window.confirm("Bạn có chắc chắn muốn xoá sản phẩm này?")) {
       const updated = products.filter((p) => p.id !== id);
       saveToStorage(updated);
@@ -37,6 +45,7 @@ export default function ProductManager() {
   };
 
   const handleSave = (product) => {
+    if (isViewer) return;
     if (
       !product.id &&
       products.some((p) => p.name.toLowerCase() === product.name.toLowerCase())
@@ -74,15 +83,17 @@ export default function ProductManager() {
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
-          <button
-            onClick={() => {
-              setEditData(null);
-              setShowForm(true);
-            }}
-            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-          >
-            ➕ Thêm sản phẩm
-          </button>
+          {!isViewer && (
+            <button
+              onClick={() => {
+                setEditData(null);
+                setShowForm(true);
+              }}
+              className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+            >
+              ➕ Thêm sản phẩm
+            </button>
+          )}
         </div>
       </div>
 
@@ -94,6 +105,7 @@ export default function ProductManager() {
               <th className="p-3 border-b">Tên</th>
               <th className="p-3 border-b">Giá</th>
               <th className="p-3 border-b">Danh mục</th>
+              <th className="p-3 border-b">⭐ Trung bình</th>
               <th className="p-3 border-b text-center">Hành động</th>
             </tr>
           </thead>
@@ -103,11 +115,11 @@ export default function ProductManager() {
                 <td className="p-3">
                   {p.images?.[0] ? (
                     <img
-  src={p.images[0]}
-  alt={p.name}
-  className="w-16 h-16 object-cover rounded cursor-pointer"
-  onClick={() => setPreviewImage(p.images[0])}
-/>
+                      src={p.images[0]}
+                      alt={p.name}
+                      className="w-16 h-16 object-cover rounded cursor-pointer"
+                      onClick={() => setPreviewImage(p.images[0])}
+                    />
                   ) : (
                     "Không có ảnh"
                   )}
@@ -117,28 +129,30 @@ export default function ProductManager() {
                 <td className="p-3">
                   {categories.find((c) => c.id === p.category)?.label || p.category}
                 </td>
+                <td className="p-3">
+                  {avgRatings[p.name] ? `${avgRatings[p.name]} ⭐` : "—"}
+                </td>
                 <td className="p-3 text-center space-x-2">
-                  <button
-                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    onClick={() => {
-                      setEditData(p);
-                      setShowForm(true);
-                    }}
-                  >
-                    ✏️ Sửa
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                    onClick={() => setViewProduct(p)}
-                  >
-                    👁️ Xem
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                    onClick={() => handleDelete(p.id)}
-                  >
-                    🗑️ Xoá
-                  </button>
+                  {!isViewer && (
+                    <>
+                      <button
+                        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        onClick={() => {
+                          setEditData(p);
+                          setShowForm(true);
+                        }}
+                      >
+                        ✏️ Sửa
+                      </button>
+                      <button
+                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                        onClick={() => handleDelete(p.id)}
+                      >
+                        🗑️ Xoá
+                      </button>
+                    </>
+                  )}
+                  {isViewer && <span className="text-gray-400 italic">Chỉ xem</span>}
                 </td>
               </tr>
             ))}

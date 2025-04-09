@@ -162,14 +162,14 @@ export default function ProductForm({ onSave, initialData, mode = "add" }) {
           />
         </div>
         {errors.images && <p className="text-red-500 text-sm">{errors.images}</p>}
-        <div className="flex gap-2 mt-2 flex-wrap">
+        <div className="grid grid-cols-3 gap-4 mt-2">
           {images.map((img, idx) => (
             <div key={idx} className="relative">
               <img
                 src={img}
                 alt="preview"
                 onClick={() => setPreviewImage(img)}
-                className="w-20 h-20 object-cover rounded border cursor-pointer"
+                className="w-full aspect-square object-cover rounded border cursor-pointer"
               />
               <button
                 type="button"

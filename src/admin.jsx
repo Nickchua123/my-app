@@ -7,20 +7,21 @@ import ProductManager from "./admin/ProductManager";
 import CategoryManager from "./admin/CategoryManager";
 import AdminLogin from "./admin/AdminLogin";
 import AdminRoute from "./admin/AdminRoute";
-import AdminManager from "./admin/AdminManager"; // ✅ THÊM VÀO
-import OrderManager from "./admin/OrderManager"; // ✅ mới thêm
-
+import AdminManager from "./admin/AdminManager";
+import OrderManager from "./admin/OrderManager";
+import CustomerManager from "./admin/CustomerManager";
+import ReviewManager from "./admin/ReviewManager";
+import UserManager from "./admin/UserManager";
+import Unauthorized from "./admin/Unauthorized";
 
 function Admin() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Giao diện đăng nhập admin */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/" element={<AdminLogin />} />
 
-          {/* Giao diện quản trị (yêu cầu đăng nhập) */}
           <Route
             path="/admin"
             element={
@@ -30,10 +31,63 @@ function Admin() {
             }
           >
             <Route index element={<AdminDashboard />} />
-            <Route path="products" element={<ProductManager />} />
-            <Route path="categories" element={<CategoryManager />} />
-            <Route path="admins" element={<AdminManager />} />
-            <Route path="orders" element={<OrderManager />} />
+
+            <Route
+              path="products"
+              element={
+                <AdminRoute requiredRole={["admin", "manager", "viewer"]}>
+                  <ProductManager />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="categories"
+              element={
+                <AdminRoute requiredRole={["admin", "manager"]}>
+                  <CategoryManager />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="admins"
+              element={<AdminRoute requiredRole="admin"><AdminManager /></AdminRoute>}
+            />
+
+            <Route
+              path="orders"
+              element={
+                <AdminRoute requiredRole={["admin", "manager", "viewer"]}>
+                  <OrderManager />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="customers"
+              element={
+                <AdminRoute requiredRole={["admin", "manager", "viewer"]}>
+                  <CustomerManager />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="reviews"
+              element={<AdminRoute requiredRole="admin"><ReviewManager /></AdminRoute>}
+            />
+
+            <Route
+              path="users"
+              element={
+                <AdminRoute requiredRole={["admin", "manager"]}>
+                  <UserManager />
+                </AdminRoute>
+              }
+            />
+
+            <Route path="unauthorized" element={<Unauthorized />} />
           </Route>
         </Routes>
       </Router>

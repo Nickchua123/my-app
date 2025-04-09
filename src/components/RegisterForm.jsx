@@ -1,49 +1,88 @@
-export default function RegisterForm({ handleRegister, switchToLogin }) {
+// UserRegisterPage.jsx – Trang đăng ký người dùng
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
+
+export default function UserRegisterPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const { register } = useUser();
+  const navigate = useNavigate();
+
+  const handleRegister = (e) => {
+    e.preventDefault();
+    const success = register({ name, email, password, phone, address });
+    if (success) {
+      alert("🎉 Đăng ký thành công");
+      navigate("/");
+    } else {
+      alert("❌ Email đã tồn tại!");
+    }
+  };
+
   return (
-    <form onSubmit={handleRegister} className="space-y-5 text-base md:text-lg">
-      <div className="space-y-2">
-        <label className="block text-gray-700 dark:text-gray-300 font-semibold">Tên của bạn</label>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form
+        onSubmit={handleRegister}
+        className="bg-white p-6 rounded-xl shadow-md w-full max-w-md space-y-4"
+      >
+        <h2 className="text-2xl font-bold text-center">📝 Đăng ký người dùng</h2>
+
         <input
           type="text"
-          placeholder="Nguyễn Văn A"
+          placeholder="Họ tên"
           required
-          className="w-full py-3 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-800 dark:text-white"
+          className="w-full p-3 border rounded"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
-      </div>
-      <div className="space-y-2">
-        <label className="block text-gray-700 dark:text-gray-300 font-semibold">Email</label>
+
         <input
           type="email"
-          placeholder="you@example.com"
+          placeholder="Email"
           required
-          className="w-full py-3 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-800 dark:text-white"
+          className="w-full p-3 border rounded"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
-      </div>
-      <div className="space-y-2">
-        <label className="block text-gray-700 dark:text-gray-300 font-semibold">Mật khẩu</label>
+
         <input
           type="password"
-          placeholder="Tạo mật khẩu"
+          placeholder="Mật khẩu"
           required
-          className="w-full py-3 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-800 dark:text-white"
+          className="w-full p-3 border rounded"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
-      </div>
-      <button
-        type="submit"
-        className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition duration-300 font-semibold"
-      >
-        Đăng ký
-      </button>
-      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-        Bạn đã có tài khoản?{' '}
+
+        <input
+          type="text"
+          placeholder="Số điện thoại"
+          required
+          className="w-full p-3 border rounded"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+        />
+
+        <input
+          type="text"
+          placeholder="Địa chỉ"
+          required
+          className="w-full p-3 border rounded"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
+
         <button
-          type="button"
-          onClick={switchToLogin}
-          className="text-blue-600 hover:underline font-medium"
+          type="submit"
+          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
         >
-          Đăng nhập!
+          Đăng ký
         </button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

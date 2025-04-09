@@ -65,6 +65,36 @@ export default function AdminLayout() {
           }
           >📋 Đơn hàng
           </NavLink>
+          <NavLink
+          to="/admin/customers"
+           className={({ isActive }) =>
+              isActive
+            ? "block p-2 bg-orange-500 text-white rounded"
+             : "block p-2 hover:bg-orange-100 rounded"
+            }
+         >
+           👤 Khách hàng
+          </NavLink>
+          <NavLink
+          to="/admin/reviews"
+            className={({ isActive }) =>
+             isActive
+              ? "block p-2 bg-orange-500 text-white rounded"
+               : "block p-2 hover:bg-orange-100 rounded"
+            }
+          >
+           ⭐ Đánh giá
+          </NavLink>
+          <NavLink
+          to="/admin/users"
+            className={({ isActive }) =>
+             isActive
+              ? "block p-2 bg-orange-500 text-white rounded"
+              : "block p-2 hover:bg-orange-100 rounded"
+           }
+          >
+           👥 Người dùng
+          </NavLink>
 
           <NavLink
             to="/admin/admins"

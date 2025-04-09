@@ -1,4 +1,4 @@
-// OrderManager.jsx - Quản lý đơn hàng giống thực tế
+// OrderManager.jsx - Quản lý đơn hàng (ẩn nút sửa nếu viewer)
 import { useEffect, useState } from "react";
 
 const STATUS_OPTIONS = [
@@ -12,6 +12,11 @@ export default function OrderManager() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
+
+  const currentAdmin = localStorage.getItem("currentAdmin");
+  const admins = JSON.parse(localStorage.getItem("admins")) || [];
+  const currentRole = admins.find((a) => a.email === currentAdmin)?.role;
+  const isViewer = currentRole === "viewer";
 
   useEffect(() => {
     const stored = localStorage.getItem("orders");
@@ -52,6 +57,7 @@ export default function OrderManager() {
   };
 
   const handleStatusChange = (id, newStatus) => {
+    if (isViewer) return;
     const updated = orders.map((o) =>
       o.id === id ? { ...o, status: newStatus } : o
     );
@@ -157,18 +163,24 @@ export default function OrderManager() {
               ))}
             </div>
 
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">📝 Trạng thái đơn hàng:</label>
-              <select
-                className="border p-2 rounded w-full"
-                value={selectedOrder.status}
-                onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value)}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
-            </div>
+            {!isViewer && (
+              <div className="mb-4">
+                <label className="block font-semibold mb-1">📝 Trạng thái đơn hàng:</label>
+                <select
+                  className="border p-2 rounded w-full"
+                  value={selectedOrder.status}
+                  onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value)}
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {isViewer && (
+              <p className="italic text-gray-500 mb-4">Bạn chỉ có quyền xem đơn hàng.</p>
+            )}
 
             <p className="text-right font-bold text-lg">
               💰 Tổng tiền: {selectedOrder.total.toLocaleString()} đ
