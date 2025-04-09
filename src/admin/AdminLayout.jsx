@@ -57,6 +57,14 @@ export default function AdminLayout() {
           >
             🗂️ Quản lý danh mục
           </NavLink>
+          <NavLink to="/admin/orders"
+           className={({ isActive }) =>
+            isActive
+              ? "block p-2 bg-orange-500 text-white rounded"
+              : "block p-2 hover:bg-orange-100 rounded"
+          }
+          >📋 Đơn hàng
+          </NavLink>
 
           <NavLink
             to="/admin/admins"

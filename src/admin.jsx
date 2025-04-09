@@ -8,6 +8,8 @@ import CategoryManager from "./admin/CategoryManager";
 import AdminLogin from "./admin/AdminLogin";
 import AdminRoute from "./admin/AdminRoute";
 import AdminManager from "./admin/AdminManager"; // ✅ THÊM VÀO
+import OrderManager from "./admin/OrderManager"; // ✅ mới thêm
+
 
 function Admin() {
   return (
@@ -30,7 +32,8 @@ function Admin() {
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<ProductManager />} />
             <Route path="categories" element={<CategoryManager />} />
-            <Route path="admins" element={<AdminManager />} /> {/* ✅ Thêm đường dẫn quản lý admin */}
+            <Route path="admins" element={<AdminManager />} />
+            <Route path="orders" element={<OrderManager />} />
           </Route>
         </Routes>
       </Router>
