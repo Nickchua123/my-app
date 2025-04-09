@@ -85,13 +85,7 @@ export default function AdminForm({ onSubmit, initialData = null }) {
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-sm text-gray-500"
-          >
-            {showPassword ? "🙈" : "👁"}
-          </button>
+         
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
         </div>
 
