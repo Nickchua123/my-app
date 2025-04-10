@@ -18,8 +18,8 @@ function Admin() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/" element={<AdminLogin />} />
+          {/* <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/" element={<AdminLogin />} /> */}
 
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />

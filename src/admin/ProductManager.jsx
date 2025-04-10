@@ -1,223 +1,356 @@
-// ✅ ProductManager.jsx – cập nhật để ẩn nút thêm/sửa/xoá nếu là viewer
 import { useEffect, useState } from "react";
-import allProducts from "../components/data/products";
-import ProductForm from "./ProductForm";
-import useCategories from "../hooks/useCategories";
-import useReviewStats from "../hooks/useReviewStats";
+import axios from "axios";
 
 export default function ProductManager() {
   const [products, setProducts] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [editData, setEditData] = useState(null);
-  const [searchText, setSearchText] = useState("");
-  const [viewProduct, setViewProduct] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null); // mở form sửa
+  const [addingProduct, setAddingProduct] = useState(false); // mở form thêm
+  const [errors, setErrors] = useState({});
 
-  const categories = useCategories();
-  const avgRatings = useReviewStats();
-
-  const currentAdmin = localStorage.getItem("currentAdmin");
-  const admins = JSON.parse(localStorage.getItem("admins")) || [];
-  const currentRole = admins.find((a) => a.email === currentAdmin)?.role;
-  const isViewer = currentRole === "viewer";
+  const inputClass = "w-full border p-2 rounded";
 
   useEffect(() => {
-    const stored = localStorage.getItem("products");
-    if (stored) {
-      setProducts(JSON.parse(stored));
-    } else {
-      setProducts(allProducts);
-      localStorage.setItem("products", JSON.stringify(allProducts));
-    }
+    fetchProducts();
   }, []);
 
-  const saveToStorage = (data) => {
-    localStorage.setItem("products", JSON.stringify(data));
-    setProducts(data);
-  };
-
-  const handleDelete = (id) => {
-    if (isViewer) return;
-    if (window.confirm("Bạn có chắc chắn muốn xoá sản phẩm này?")) {
-      const updated = products.filter((p) => p.id !== id);
-      saveToStorage(updated);
+  const fetchProducts = async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/api/v1/products");
+      setProducts(res.data.data);
+    } catch (err) {
+      console.error("❌ Lỗi khi load sản phẩm:", err);
     }
   };
 
-  const handleSave = (product) => {
-    if (isViewer) return;
-    if (
-      !product.id &&
-      products.some((p) => p.name.toLowerCase() === product.name.toLowerCase())
-    ) {
-      alert("Tên sản phẩm đã tồn tại.");
-      return;
-    }
-
-    let updated;
-    if (product.id) {
-      updated = products.map((p) => (p.id === product.id ? product : p));
-    } else {
-      const newProduct = { ...product, id: Date.now() };
-      updated = [...products, newProduct];
-    }
-
-    saveToStorage(updated);
-    setShowForm(false);
-    setEditData(null);
+  const validate = (product) => {
+    const newErrors = {};
+    if (!product.name?.trim()) newErrors.name = "Tên sản phẩm không được để trống.";
+    if (!product.price || Number(product.price) <= 0) newErrors.price = "Giá phải lớn hơn 0.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate(editingProduct)) return;
+
+    try {
+      await axios.put("http://localhost:8080/api/v1/products", editingProduct);
+      alert("✅ Cập nhật sản phẩm thành công!");
+      setEditingProduct(null);
+      fetchProducts();
+    } catch (err) {
+      console.error("❌ Lỗi khi cập nhật:", err);
+      alert("❌ Không cập nhật được sản phẩm");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+    try {
+      await axios.delete(`http://localhost:8080/api/v1/products/${id}`);
+      alert("🗑️ Đã xóa sản phẩm!");
+      fetchProducts();
+    } catch (err) {
+      console.error("❌ Lỗi khi xóa:", err);
+      alert("❌ Không thể xóa sản phẩm");
+    }
+  };
+
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    if (!validate(editingProduct)) return;
+
+    try {
+      await axios.post("http://localhost:8080/api/v1/products", editingProduct);
+      alert("✅ Thêm sản phẩm thành công!");
+      setEditingProduct(null);
+      setAddingProduct(false);
+      fetchProducts();
+    } catch (err) {
+      console.error("❌ Lỗi khi thêm sản phẩm:", err);
+      alert("❌ Không thể thêm sản phẩm");
+    }
+  };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-        <h1 className="text-2xl font-bold">📦 Quản lý sản phẩm</h1>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="🔍 Tìm kiếm sản phẩm..."
-            className="border p-2 rounded"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-          {!isViewer && (
-            <button
-              onClick={() => {
-                setEditData(null);
-                setShowForm(true);
-              }}
-              className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-            >
-              ➕ Thêm sản phẩm
-            </button>
-          )}
-        </div>
-      </div>
+    <div className="p-6 max-w-5xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4">📦 Danh sách sản phẩm</h2>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border border-gray-300 bg-white shadow-sm rounded text-sm">
-          <thead className="bg-gray-100 text-left">
-            <tr>
-              <th className="p-3 border-b">Ảnh</th>
-              <th className="p-3 border-b">Tên</th>
-              <th className="p-3 border-b">Giá</th>
-              <th className="p-3 border-b">Danh mục</th>
-              <th className="p-3 border-b">⭐ Trung bình</th>
-              <th className="p-3 border-b text-center">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map((p) => (
-              <tr key={p.id} className="border-t hover:bg-gray-50">
-                <td className="p-3">
-                  {p.images?.[0] ? (
-                    <img
-                      src={p.images[0]}
-                      alt={p.name}
-                      className="w-16 h-16 object-cover rounded cursor-pointer"
-                      onClick={() => setPreviewImage(p.images[0])}
-                    />
-                  ) : (
-                    "Không có ảnh"
-                  )}
-                </td>
-                <td className="p-3">{p.name}</td>
-                <td className="p-3">{p.price.toLocaleString()} đ</td>
-                <td className="p-3">
-                  {categories.find((c) => c.id === p.category)?.label || p.category}
-                </td>
-                <td className="p-3">
-                  {avgRatings[p.name] ? `${avgRatings[p.name]} ⭐` : "—"}
-                </td>
-                <td className="p-3 text-center space-x-2">
-                  {!isViewer && (
-                    <>
-                      <button
-                        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        onClick={() => {
-                          setEditData(p);
-                          setShowForm(true);
-                        }}
-                      >
-                        ✏️ Sửa
-                      </button>
-                      <button
-                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                        onClick={() => handleDelete(p.id)}
-                      >
-                        🗑️ Xoá
-                      </button>
-                    </>
-                  )}
-                  {isViewer && <span className="text-gray-400 italic">Chỉ xem</span>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <button
+        className="bg-green-500 text-white px-4 py-2 rounded mb-6"
+        onClick={() => setAddingProduct(true)}
+      >
+        ➕ Thêm sản phẩm mới
+      </button>
 
-      {showForm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-3xl shadow-lg relative max-h-[90vh] overflow-y-auto">
+      <ul className="space-y-2 mb-6">
+        {products.map((p) => (
+          <li key={p.id} className="border p-3 rounded flex justify-between items-center">
+            <div className="cursor-pointer" onClick={() => setSelectedProduct(p)}>
+              <strong>{p.name}</strong> – {p.price} VNĐ
+            </div>
+            <div className="flex gap-2">
+              <button
+                className="bg-blue-500 text-white px-3 py-1 rounded"
+                onClick={() => setEditingProduct(p)}
+              >
+                ✏️ Sửa
+              </button>
+              <button
+                className="bg-red-500 text-white px-3 py-1 rounded"
+                onClick={() => handleDelete(p.id)}
+              >
+                🗑️ Xóa
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {/* 👉 Popup xem chi tiết */}
+      {selectedProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg max-w-md w-full relative">
             <button
-              onClick={() => {
-                setShowForm(false);
-                setEditData(null);
-              }}
-              className="absolute top-2 right-2 text-gray-500 hover:text-black text-xl"
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+              onClick={() => setSelectedProduct(null)}
             >
-              ×
+              ❌
             </button>
-            <ProductForm
-              mode={editData ? "edit" : "add"}
-              initialData={editData}
-              onSave={handleSave}
-            />
+            <h3 className="text-lg font-semibold mb-2">👁️ Chi tiết sản phẩm</h3>
+            <p><strong>Tên:</strong> {selectedProduct.name}</p>
+            <p><strong>Giá:</strong> {selectedProduct.price} VNĐ</p>
+            <p><strong>Số lượng:</strong> {selectedProduct.quantity}</p>
+            <p><strong>Hãng:</strong> {selectedProduct.brand}</p>
+            <p><strong>Bảo hành:</strong> {selectedProduct.warranty}</p>
+            <p><strong>Mô tả:</strong> {selectedProduct.description}</p>
           </div>
         </div>
       )}
 
-      {viewProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 relative">
+      {/* 👉 Popup chỉnh sửa */}
+      {editingProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white p-6 rounded-lg shadow-md space-y-4 w-full max-w-2xl relative"
+          >
             <button
-              onClick={() => setViewProduct(null)}
-              className="absolute top-2 right-2 text-xl text-gray-500 hover:text-black"
-            >×</button>
-            <h2 className="text-xl font-bold mb-4">👁️ Chi tiết sản phẩm</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {viewProduct.images?.map((img, i) => (
-                <img
-                  key={i}
-                  src={img}
-                  alt="img"
-                  className="w-full h-40 object-cover rounded cursor-pointer"
-                  onClick={() => setPreviewImage(img)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+              onClick={() => setEditingProduct(null)}
+              type="button"
+            >
+              ❌
+            </button>
+
+            <h3 className="text-xl font-semibold">✏️ Chỉnh sửa sản phẩm</h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label>Tên sản phẩm *</label>
+                <input
+                  type="text"
+                  className={`${inputClass} ${errors.name ? "border-red-500" : ""}`}
+                  value={editingProduct.name}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, name: e.target.value })
+                  }
                 />
-              ))}
+                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+              </div>
+
+              <div>
+                <label>Giá (VNĐ) *</label>
+                <input
+                  type="number"
+                  className={`${inputClass} ${errors.price ? "border-red-500" : ""}`}
+                  value={editingProduct.price}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, price: e.target.value })
+                  }
+                />
+                {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+              </div>
+
+              <div>
+                <label>Số lượng</label>
+                <input
+                  type="number"
+                  className={inputClass}
+                  value={editingProduct.quantity}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, quantity: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label>Hãng</label>
+                <input
+                  type="text"
+                  className={inputClass}
+                  value={editingProduct.brand}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, brand: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label>Bảo hành</label>
+                <input
+                  type="text"
+                  className={inputClass}
+                  value={editingProduct.warranty}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, warranty: e.target.value })
+                  }
+                />
+              </div>
             </div>
-            <div className="mt-4 space-y-2 text-sm">
-              <p><strong>Tên:</strong> {viewProduct.name}</p>
-              <p><strong>Giá:</strong> {viewProduct.price.toLocaleString()} đ</p>
-              <p><strong>Danh mục:</strong> {categories.find(c => c.id === viewProduct.category)?.label || viewProduct.category}</p>
-              <p><strong>Hãng:</strong> {viewProduct.brand}</p>
-              <p><strong>Số lượng:</strong> {viewProduct.quantity}</p>
-              <p><strong>Trạng thái:</strong> {viewProduct.status === "available" ? "✅ Còn hàng" : "❌ Hết hàng"}</p>
-              <p><strong>Đánh giá:</strong> {viewProduct.rating} ⭐</p>
-              <p><strong>Bảo hành:</strong> {viewProduct.warranty}</p>
-              <p><strong>Mô tả:</strong> {viewProduct.description}</p>
+
+            <div>
+              <label>Mô tả</label>
+              <textarea
+                rows={4}
+                className={inputClass}
+                value={editingProduct.description}
+                onChange={(e) =>
+                  setEditingProduct({ ...editingProduct, description: e.target.value })
+                }
+              />
             </div>
-          </div>
+
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                💾 Lưu thay đổi
+              </button>
+              <button
+                type="button"
+                className="bg-gray-400 text-white px-4 py-2 rounded"
+                onClick={() => setEditingProduct(null)}
+              >
+                ❌ Hủy
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
-      {previewImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setPreviewImage(null)}>
-          <img src={previewImage} alt="Large preview" className="max-w-[90%] max-h-[90%] rounded shadow-lg" />
+      {/* 👉 Popup thêm sản phẩm */}
+      {addingProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <form
+            onSubmit={handleAddProduct}
+            className="bg-white p-6 rounded-lg shadow-md space-y-4 w-full max-w-2xl relative"
+          >
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+              onClick={() => setAddingProduct(false)}
+              type="button"
+            >
+              ❌
+            </button>
+
+            <h3 className="text-xl font-semibold">➕ Thêm sản phẩm mới</h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label>Tên sản phẩm *</label>
+                <input
+                  type="text"
+                  className={`${inputClass} ${errors.name ? "border-red-500" : ""}`}
+                  value={editingProduct?.name || ""}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, name: e.target.value })
+                  }
+                />
+                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+              </div>
+
+              <div>
+                <label>Giá (VNĐ) *</label>
+                <input
+                  type="number"
+                  className={`${inputClass} ${errors.price ? "border-red-500" : ""}`}
+                  value={editingProduct?.price || ""}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, price: e.target.value })
+                  }
+                />
+                {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+              </div>
+
+              <div>
+                <label>Số lượng</label>
+                <input
+                  type="number"
+                  className={inputClass}
+                  value={editingProduct?.quantity || ""}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, quantity: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label>Hãng</label>
+                <input
+                  type="text"
+                  className={inputClass}
+                  value={editingProduct?.brand || ""}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, brand: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label>Bảo hành</label>
+                <input
+                  type="text"
+                  className={inputClass}
+                  value={editingProduct?.warranty || ""}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, warranty: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            <div>
+              <label>Mô tả</label>
+              <textarea
+                rows={4}
+                className={inputClass}
+                value={editingProduct?.description || ""}
+                onChange={(e) =>
+                  setEditingProduct({ ...editingProduct, description: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                💾 Thêm sản phẩm
+              </button>
+              <button
+                type="button"
+                className="bg-gray-400 text-white px-4 py-2 rounded"
+                onClick={() => setAddingProduct(false)}
+              >
+                ❌ Hủy
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
