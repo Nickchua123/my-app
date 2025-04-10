@@ -6,7 +6,6 @@ import AdminDashboard from "./admin/AdminDashboard";
 import ProductManager from "./admin/ProductManager";
 import CategoryManager from "./admin/CategoryManager";
 import AdminLogin from "./admin/AdminLogin";
-import AdminRoute from "./admin/AdminRoute";
 import AdminManager from "./admin/AdminManager";
 import OrderManager from "./admin/OrderManager";
 import CustomerManager from "./admin/CustomerManager";
@@ -22,70 +21,22 @@ function Admin() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/" element={<AdminLogin />} />
 
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminLayout />
-              </AdminRoute>
-            }
-          >
+          <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
 
-            <Route
-              path="products"
-              element={
-                <AdminRoute requiredRole={["admin", "manager", "viewer"]}>
-                  <ProductManager />
-                </AdminRoute>
-              }
-            />
+            <Route path="products" element={<ProductManager />} />
 
-            <Route
-              path="categories"
-              element={
-                <AdminRoute requiredRole={["admin", "manager"]}>
-                  <CategoryManager />
-                </AdminRoute>
-              }
-            />
+            <Route path="categories" element={<CategoryManager />} />
 
-            <Route
-              path="admins"
-              element={<AdminRoute requiredRole="admin"><AdminManager /></AdminRoute>}
-            />
+            <Route path="admins" element={<AdminManager />} />
 
-            <Route
-              path="orders"
-              element={
-                <AdminRoute requiredRole={["admin", "manager", "viewer"]}>
-                  <OrderManager />
-                </AdminRoute>
-              }
-            />
+            <Route path="orders" element={<OrderManager />} />
 
-            <Route
-              path="customers"
-              element={
-                <AdminRoute requiredRole={["admin", "manager", "viewer"]}>
-                  <CustomerManager />
-                </AdminRoute>
-              }
-            />
+            <Route path="customers" element={<CustomerManager />} />
 
-            <Route
-              path="reviews"
-              element={<AdminRoute requiredRole="admin"><ReviewManager /></AdminRoute>}
-            />
+            <Route path="reviews" element={<ReviewManager />} />
 
-            <Route
-              path="users"
-              element={
-                <AdminRoute requiredRole={["admin", "manager"]}>
-                  <UserManager />
-                </AdminRoute>
-              }
-            />
+            <Route path="users" element={<UserManager />} />
 
             <Route path="unauthorized" element={<Unauthorized />} />
           </Route>
