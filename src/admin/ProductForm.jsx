@@ -1,24 +1,26 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import useCategories from "../hooks/useCategories";
 
 export default function ProductForm({ onSaveSuccess, initialData = {}, mode = "add" }) {
   const [product, setProduct] = useState({
     name: "",
     price: "",
     description: "",
-    //category: "",
     quantity: 0,
     brand: "",
     warranty: "",
+    image: "", // Thêm trường để lưu ảnh
   });
 
   const [errors, setErrors] = useState({});
-  //const categories = useCategories();
+  const [imagePreview, setImagePreview] = useState(null); // Để hiển thị ảnh preview
 
   useEffect(() => {
     if (initialData) {
       setProduct(initialData);
+      if (initialData.image) {
+        setImagePreview(initialData.image); // Nếu có ảnh ban đầu, hiển thị preview
+      }
     }
   }, [initialData]);
 
@@ -26,7 +28,6 @@ export default function ProductForm({ onSaveSuccess, initialData = {}, mode = "a
     const newErrors = {};
     if (!product.name.trim()) newErrors.name = "Tên sản phẩm không được để trống.";
     if (!product.price || Number(product.price) <= 0) newErrors.price = "Giá phải lớn hơn 0.";
-    //if (!product.category) newErrors.category = "Vui lòng chọn danh mục.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -35,16 +36,42 @@ export default function ProductForm({ onSaveSuccess, initialData = {}, mode = "a
     e.preventDefault();
     if (!validate()) return;
 
+    const formData = new FormData();
+    formData.append("name", product.name);
+    formData.append("price", product.price);
+    formData.append("description", product.description);
+    formData.append("quantity", product.quantity);
+    formData.append("brand", product.brand);
+    formData.append("warranty", product.warranty);
+
+    if (product.image) {
+      formData.append("image", product.image);
+    }
+
     try {
       const url = "http://localhost:8080/api/v1/products";
       const method = mode === "edit" ? "put" : "post";
-      await axios[method](url, product);
+      await axios[method](url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       alert("✅ Gửi dữ liệu thành công!");
       onSaveSuccess && onSaveSuccess();
     } catch (err) {
       console.error("❌ Lỗi gửi dữ liệu:", err);
       alert("❌ Không gửi được dữ liệu");
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProduct({ ...product, image: file });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -57,7 +84,6 @@ export default function ProductForm({ onSaveSuccess, initialData = {}, mode = "a
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Tên sản phẩm */}
         <div>
           <label>Tên sản phẩm *</label>
           <input
@@ -68,8 +94,6 @@ export default function ProductForm({ onSaveSuccess, initialData = {}, mode = "a
           />
           {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
         </div>
-
-        {/* Giá */}
         <div>
           <label>Giá (VNĐ) *</label>
           <input
@@ -80,58 +104,8 @@ export default function ProductForm({ onSaveSuccess, initialData = {}, mode = "a
           />
           {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
         </div>
-
-        {/* Danh mục
-        <div>
-          <label>Danh mục *</label>
-          <select
-            className={`${inputClass} ${errors.category ? "border-red-500" : ""}`}
-            value={product.category}
-            onChange={(e) => setProduct({ ...product, category: e.target.value })}
-          >
-            <option value="">-- Chọn danh mục --</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-          {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
-        </div> */}
-
-        {/* Số lượng */}
-        <div>
-          <label>Số lượng</label>
-          <input
-            type="number"
-            className={inputClass}
-            value={product.quantity}
-            onChange={(e) => setProduct({ ...product, quantity: e.target.value })}
-          />
-        </div>
-
-        {/* Hãng */}
-        <div>
-          <label>Hãng</label>
-          <input
-            type="text"
-            className={inputClass}
-            value={product.brand}
-            onChange={(e) => setProduct({ ...product, brand: e.target.value })}
-          />
-        </div>
-
-        {/* Bảo hành */}
-        <div>
-          <label>Bảo hành</label>
-          <input
-            type="text"
-            className={inputClass}
-            value={product.warranty}
-            onChange={(e) => setProduct({ ...product, warranty: e.target.value })}
-          />
-        </div>
       </div>
 
-      {/* Mô tả */}
       <div>
         <label>Mô tả</label>
         <textarea
@@ -142,10 +116,26 @@ export default function ProductForm({ onSaveSuccess, initialData = {}, mode = "a
         />
       </div>
 
-      {/* Nút gửi */}
-      <button type="submit" className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">
-        {mode === "edit" ? "💾 Lưu thay đổi" : "✅ Thêm sản phẩm"}
-      </button>
+      <div>
+        <label>Ảnh sản phẩm</label>
+        <input
+          type="file"
+          accept="image/*"
+          className={inputClass}
+          onChange={handleImageChange}
+        />
+        {imagePreview && (
+          <div className="mt-4">
+            <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover" />
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-4">
+        <button type="submit" className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">
+          {mode === "edit" ? "💾 Lưu thay đổi" : "✅ Thêm sản phẩm"}
+        </button>
+      </div>
     </form>
   );
 }
