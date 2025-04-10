@@ -2,6 +2,7 @@ import ProductList from "../components/ProductList";
 import allProducts from "../components/data/products";
 import categoryMap from "../components/data/categories";
 import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 
 export default function HomePage() {
   const featuredProducts = allProducts.slice(0, 8); // Sản phẩm nổi bật giả định
