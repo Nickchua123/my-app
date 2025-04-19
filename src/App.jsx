@@ -12,6 +12,7 @@ import CategoryManager from "./admin/CategoryManager"; // nếu bạn tạo
 function App() {
   return (
     <CartProvider>
+      
       <Router>
         <Layout>
           <Routes>

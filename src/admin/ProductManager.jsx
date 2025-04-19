@@ -17,12 +17,12 @@ export default function ProductManager() {
   const fetchProducts = async () => {
     try {
       const res = await axios.get("http://localhost:8080/api/v1/products");
-      setProducts(res.data.data);
+      setProducts(res.data.data.result);
     } catch (err) {
       console.error("❌ Lỗi khi load sản phẩm:", err);
     }
   };
-
+  // Hàm validate
   const validate = (product) => {
     const newErrors = {};
     if (!product.name?.trim()) newErrors.name = "Tên sản phẩm không được để trống.";
@@ -50,7 +50,7 @@ export default function ProductManager() {
     if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
     try {
       await axios.delete(`http://localhost:8080/api/v1/products/${id}`);
-      alert("🗑️ Đã xóa sản phẩm!");
+      alert("🗑️ Đã xóa sản phẩm thành công !");
       fetchProducts();
     } catch (err) {
       console.error("❌ Lỗi khi xóa:", err);
