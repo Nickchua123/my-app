@@ -8,6 +8,10 @@ export default function ProductManager() {
   const [editData, setEditData] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  // Phân trang 
+  const [currentPage, setCurrentPage] = useState(0); // bắt đầu từ 0
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 5; // số sản phẩm mỗi trang
 
   const categories = useCategories();
   const currentAdmin = localStorage.getItem("currentAdmin");
@@ -15,18 +19,26 @@ export default function ProductManager() {
   const currentRole = admins.find((a) => a.email === currentAdmin)?.role;
   const isViewer = currentRole === "viewer";
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
 
-  const fetchProducts = async () => {
+  useEffect(() => {
+    fetchProducts(currentPage);
+  }, [currentPage]); // ✅ luôn giữ đúng cấu trúc
+
+  const fetchProducts = async (page = 0) => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/products");
-      setProducts(res.data.data.result);
+      const res = await axios.get(
+        `http://localhost:8080/api/v1/products?page=${page}&size=${pageSize}`
+      );
+      const data = res.data.data;
+
+      setProducts(data.result);
+      setTotalPages(data.meta.pages); // ✅ Dùng đúng key "pages" tổng số trang
     } catch (err) {
       console.error("❌ Lỗi khi load sản phẩm:", err);
     }
   };
+
+
 
   //  NEW: Chuyển base64 -> File vì base64 k t
   const base64ToFile = async (base64, filename) => {
@@ -84,7 +96,7 @@ export default function ProductManager() {
         });
       }
 
-      fetchProducts();
+      await fetchProducts(currentPage);
       setShowForm(false);
       setEditData(null);
     } catch (err) {
@@ -102,7 +114,7 @@ export default function ProductManager() {
     if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
     try {
       await axios.delete(`http://localhost:8080/api/v1/products/${id}`);
-      fetchProducts();
+      await fetchProducts(currentPage);
     } catch (err) {
       console.error("❌ Lỗi khi xoá:", err);
     }
@@ -218,6 +230,30 @@ export default function ProductManager() {
           <img src={previewImage} alt="Preview" className="max-w-[90%] max-h-[90%] rounded shadow-lg" />
         </div>
       )}
+      <div className="mt-4 flex justify-center items-center gap-4">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
+          disabled={currentPage === 0}
+          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+        >
+          ⬅ Trước
+        </button>
+
+        <span>
+          Trang {currentPage + 1} / {totalPages}
+        </span>
+
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
+          disabled={currentPage >= totalPages - 1}
+          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+        >
+          Sau ➡
+        </button>
+      </div>
+
     </div>
+
+
   );
 }
