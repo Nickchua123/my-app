@@ -1,6 +1,5 @@
-// ✅ ProductForm.jsx (nâng cấp: xoá ảnh, giới hạn dung lượng, xem trước lớn)
-import { useState } from "react";
-import useCategories from "../hooks/useCategories";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function ProductForm({ onSave, initialData, mode = "add" }) {
   const data = initialData || {};
@@ -17,11 +16,11 @@ export default function ProductForm({ onSave, initialData, mode = "add" }) {
   const [previewImage, setPreviewImage] = useState(null);
   const [errors, setErrors] = useState({});
 
-  const categories = useCategories();
+  const categories = ["Electronics", "Clothing", "Furniture", "Food"]; // Example categories
 
   const validate = () => {
     const newErrors = {};
-    if (!name.trim()) newErrors.name = "Tên không được để trống.";
+    if (!name.trim()) newErrors.name = "Tên sản phẩm không được để trống.";
     if (!price || Number(price) <= 0) newErrors.price = "Giá phải > 0.";
     if (!category) newErrors.category = "Chọn danh mục.";
     if (images.length === 0) newErrors.images = "Cần ít nhất 1 ảnh.";
@@ -60,7 +59,6 @@ export default function ProductForm({ onSave, initialData, mode = "add" }) {
     if (!validate()) return;
 
     const productData = {
-      ...data,
       name,
       price: Number(price),
       category,
@@ -73,75 +71,100 @@ export default function ProductForm({ onSave, initialData, mode = "add" }) {
       images,
     };
 
-    onSave(productData);
+    onSave(productData); // Call the onSave function to save the data
   };
-
-  const inputClass = "w-full border p-2 rounded";
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4">
-      <h2 className="text-xl font-semibold">
-        {mode === "edit" ? "✏️ Chỉnh sửa sản phẩm" : "➕ Thêm sản phẩm mới"}
-      </h2>
+      <h2 className="text-xl font-semibold">{mode === "edit" ? "✏️ Chỉnh sửa sản phẩm" : "➕ Thêm sản phẩm mới"}</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label>Tên sản phẩm</label>
-          <input type="text" className={`${inputClass} ${errors.name ? "border-red-500" : ""}`} value={name} onChange={(e) => setName(e.target.value)} />
-          {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-        </div>
-
-        <div>
-          <label>Giá (VNĐ)</label>
-          <input type="number" className={`${inputClass} ${errors.price ? "border-red-500" : ""}`} value={price} onChange={(e) => setPrice(e.target.value)} />
-          {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
-        </div>
-
-        <div>
-          <label>Danh mục</label>
-          <select className={`${inputClass} ${errors.category ? "border-red-500" : ""}`} value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="">-- Chọn danh mục --</option>
-            {categories.map(({ id, label }) => (
-              <option key={id} value={id}>{label}</option>
-            ))}
-          </select>
-          {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
-        </div>
-
-        <div>
-          <label>Số lượng</label>
-          <input type="number" className={inputClass} value={quantity} onChange={(e) => setQuantity(e.target.value)} />
-        </div>
-
-        <div>
-          <label>Hãng</label>
-          <input type="text" className={inputClass} value={brand} onChange={(e) => setBrand(e.target.value)} />
-        </div>
-
-        <div>
-          <label>Bảo hành</label>
-          <input type="text" className={inputClass} value={warranty} onChange={(e) => setWarranty(e.target.value)} />
-        </div>
-
-        <div>
-          <label>Trạng thái</label>
-          <select className={inputClass} value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="available">✅ Còn hàng</option>
-            <option value="out">❌ Hết hàng</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Đánh giá (sao)</label>
-          <input type="number" className={inputClass} value={rating} min={1} max={5} onChange={(e) => setRating(e.target.value)} />
-        </div>
+      {/* Product Name */}
+      <div>
+        <label>Tên sản phẩm</label>
+        <input
+          type="text"
+          className="w-full border p-2 rounded"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
       </div>
 
+      {/* Product Price */}
+      <div>
+        <label>Giá (VNĐ)</label>
+        <input
+          type="number"
+          className="w-full border p-2 rounded"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+        {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+      </div>
+
+      {/* Product Category */}
+      <div>
+        <label>Danh mục</label>
+        <select
+          className="w-full border p-2 rounded"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option value="">-- Chọn danh mục --</option>
+          {categories.map((cat, index) => (
+            <option key={index} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+        {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
+      </div>
+
+      {/* Product Quantity */}
+      <div>
+        <label>Số lượng</label>
+        <input
+          type="number"
+          className="w-full border p-2 rounded"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+        />
+      </div>
+
+      {/* Product Brand */}
+      <div>
+        <label>Hãng</label>
+        <input
+          type="text"
+          className="w-full border p-2 rounded"
+          value={brand}
+          onChange={(e) => setBrand(e.target.value)}
+        />
+      </div>
+
+      {/* Product Warranty */}
+      <div>
+        <label>Bảo hành</label>
+        <input
+          type="text"
+          className="w-full border p-2 rounded"
+          value={warranty}
+          onChange={(e) => setWarranty(e.target.value)}
+        />
+      </div>
+
+      {/* Product Description */}
       <div>
         <label>Mô tả chi tiết</label>
-        <textarea rows={4} className={inputClass} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <textarea
+          rows={4}
+          className="w-full border p-2 rounded"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
       </div>
 
+      {/* Product Images */}
       <div>
         <label>Ảnh sản phẩm (tối đa 3 ảnh dưới 1MB)</label>
         <div className="flex gap-2 my-2">
@@ -175,21 +198,18 @@ export default function ProductForm({ onSave, initialData, mode = "add" }) {
                 type="button"
                 onClick={() => handleImageRemove(idx)}
                 className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
-              >×</button>
+              >
+                ×
+              </button>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Submit Button */}
       <button type="submit" className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">
         {mode === "edit" ? "💾 Lưu thay đổi" : "✅ Thêm sản phẩm"}
       </button>
-
-      {previewImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setPreviewImage(null)}>
-          <img src={previewImage} alt="Large" className="max-w-[90%] max-h-[90%] rounded shadow-lg" />
-        </div>
-      )}
     </form>
   );
 }

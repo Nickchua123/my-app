@@ -1,45 +1,28 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import useCategories from "../hooks/useCategories";
 
-export default function AdminForm({ onSubmit, initialData = null }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [role, setRole] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
+export default function ProductForm({ onSave, initialData, mode = "add" }) {
+  const data = initialData || {}; // Dữ liệu ban đầu
+  const [name, setName] = useState(data.name || "");
+  const [price, setPrice] = useState(data.price || "");
+  const [category, setCategory] = useState(data.category || "");
+  const [quantity, setQuantity] = useState(data.quantity || 0);
+  const [brand, setBrand] = useState(data.brand || "");
+  const [warranty, setWarranty] = useState(data.warranty || "");
+  const [description, setDescription] = useState(data.description || "");
+  const [status, setStatus] = useState(data.status || "available");
+  const [rating, setRating] = useState(data.rating || 5);
+  const [images, setImages] = useState(data.images || []);
   const [errors, setErrors] = useState({});
 
-  const isEditing = !!initialData;
-
-  useEffect(() => {
-    setEmail(initialData?.email || "");
-    setPassword(initialData?.password || "");
-    setFullName(initialData?.fullName || "");
-    setPhone(initialData?.phone || "");
-    setAddress(initialData?.address || "");
-    setRole(initialData?.role || "");
-    setErrors({});
-  }, [initialData]);
+  const categories = useCategories();
 
   const validate = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^0\d{8,10}$/;
-
     const newErrors = {};
-    if (!email) newErrors.email = "Email không được để trống.";
-    else if (!emailRegex.test(email)) newErrors.email = "Email không hợp lệ.";
-
-    if (!password) newErrors.password = "Mật khẩu không được để trống.";
-    if (!fullName) newErrors.fullName = "Họ tên không được để trống.";
-    if (!phone) newErrors.phone = "SĐT không được để trống.";
-    else if (!phoneRegex.test(phone))
-      newErrors.phone = "SĐT không hợp lệ. Bắt đầu bằng 0, 9–11 số.";
-
-    if (!address) newErrors.address = "Địa chỉ không được để trống.";
-    if (!role) newErrors.role = "Vui lòng chọn quyền.";
-
+    if (!name.trim()) newErrors.name = "Tên không được để trống.";
+    if (!price || Number(price) <= 0) newErrors.price = "Giá phải > 0.";
+    if (!category) newErrors.category = "Chọn danh mục.";
+    if (images.length === 0) newErrors.images = "Cần ít nhất 1 ảnh.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -48,100 +31,39 @@ export default function AdminForm({ onSubmit, initialData = null }) {
     e.preventDefault();
     if (!validate()) return;
 
-    const data = { email, password, fullName, phone, address, role };
-    onSubmit(data);
+    const productData = {
+      name,
+      price: Number(price),
+      category,
+      quantity: Number(quantity),
+      brand,
+      warranty,
+      description,
+      status,
+      rating: Number(rating),
+      images,
+    };
+
+    onSave(productData); // Gọi onSave để lưu sản phẩm
   };
 
-  const inputClass = "border p-2 rounded w-full";
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-6 rounded shadow-md space-y-4 w-full max-w-2xl mx-auto"
-    >
-      <h2 className="text-xl font-semibold mb-4">
-        {isEditing ? "✏️ Chỉnh sửa Admin" : "➕ Thêm Admin Mới"}
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4">
+      <h2 className="text-xl font-semibold">
+        {mode === "edit" ? "✏️ Chỉnh sửa sản phẩm" : "➕ Thêm sản phẩm mới"}
       </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <input
-            type="email"
-            placeholder="Email"
-            className={`${inputClass} ${errors.email ? "border-red-500" : ""}`}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isEditing}
-          />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-        </div>
-
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Mật khẩu"
-            className={`${inputClass} ${errors.password ? "border-red-500" : ""}`}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="new-password"
-          />
-         
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-        </div>
-
-        <div>
-          <input
-            type="text"
-            placeholder="Họ tên"
-            className={`${inputClass} ${errors.fullName ? "border-red-500" : ""}`}
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-          />
-          {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
-        </div>
-
-        <div>
-          <input
-            type="text"
-            placeholder="Số điện thoại"
-            className={`${inputClass} ${errors.phone ? "border-red-500" : ""}`}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-          {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-        </div>
-
-        <div>
-          <input
-            type="text"
-            placeholder="Địa chỉ"
-            className={`${inputClass} ${errors.address ? "border-red-500" : ""}`}
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
-          {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
-        </div>
-
-        <div>
-          <select
-            className={`${inputClass} ${errors.role ? "border-red-500" : ""}`}
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-          >
-            <option value="">-- Chọn quyền --</option>
-            <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
-            <option value="viewer">Viewer</option>
-          </select>
-          {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
-        </div>
+      {/* Các trường nhập liệu như tên, giá, mô tả, v.v... */}
+      <div>
+        <label>Tên sản phẩm</label>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+        {errors.name && <p>{errors.name}</p>}
       </div>
 
-      <button
-        type="submit"
-        className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600"
-      >
-        {isEditing ? "💾 Lưu thay đổi" : "✅ Thêm admin"}
+      {/* Các trường khác... */}
+
+      <button type="submit">
+        {mode === "edit" ? "💾 Lưu thay đổi" : "✅ Thêm sản phẩm"}
       </button>
     </form>
   );
