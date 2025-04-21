@@ -1,0 +1,43 @@
+.form-section {
+    max-width: 800px;
+    margin: 0 auto;
+  
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+  
+    .row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+  
+    input,
+    textarea {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+  
+    .half-width {
+      flex: 1;
+    }
+  
+    .third-width {
+      flex: 1;
+    }
+  
+    .full-width {
+      width: 100%;
+    }
+  
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+  }
+  

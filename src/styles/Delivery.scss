@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend&display=swap');
+
+.delivery-info {
+    display: grid;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+
+    .delivery-card {
+      padding: 1rem;
+      background: white;
+      border: 1px solid #ddd;
+        background-color: whitee;
+        padding: 15px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+      
+        .icon {
+          font-size: 20px;
+          color: #888888;
+          margin-bottom: 10px;
+        }
+      
+        .title {
+          color: #17AF26; /* Màu xanh (bạn có thể thay đổi mã màu nếu muốn) */
+          font-family: 'Lexend', sans-serif;
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+      
+        p {
+          font-family: 'Lexend', sans-serif;
+          font-size: 14px;
+          color: #333;
+        }
+      
+        .bot {
+          color:#888888;
+          font-size: 13px;
+          font-weight: 100;
+        }
+      }
+}
+
+
+

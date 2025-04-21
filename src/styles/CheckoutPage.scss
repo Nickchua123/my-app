@@ -1,0 +1,59 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend&display=swap');
+
+.checkout-page {
+  font-family: 'Lexend', sans-serif;
+  background: #f9fafb;
+  min-height: 100vh;
+  padding: 2rem;
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+  }
+
+  .main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+
+    .left-column {
+      display: flex;
+      max-width: 100%;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+  }
+
+  }
+  .back-to-cart-btn {
+    height: 40px;
+    background-color: #999;
+    color: white;
+    border-radius: 30px;
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30%;
+    margin-top: 1rem;
+    border: none;
+  
+    &:hover {
+      background-color: #139d21;
+    }
+  
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+

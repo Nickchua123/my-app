@@ -1,0 +1,90 @@
+// src/styles/ShoppingCartPage.scss
+@import url('https://fonts.googleapis.com/css2?family=Lexend&display=swap');
+
+.shopping-cart-page {
+  font-family: 'Lexend', sans-serif;
+  background: #f9fafb;
+  min-height: 100vh;
+  padding: 2rem;
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+  }
+
+  .main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+  }
+
+  .product-list {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+
+    .product-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30px;
+      border-bottom: 1px solid #eeeeee; 
+
+      &:last-child {
+        border-bottom: none
+      }
+    }
+
+    .product-info {
+      display: flex;
+      flex: 1;
+
+      .product-name {
+        font-size: 10px;
+        flex: 3;
+        margin-left: 20px
+      }
+  
+      img {
+        flex: 1;
+        width: 50px
+      }
+    }
+
+    .quantity {
+      flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 50px; // hoặc 2rem nếu muốn rộng hơn
+      
+
+        .unit-price {
+          margin-left: 10px;
+          font-size: 16px;
+
+        }
+    }
+
+    .price {
+      color: #666;
+    }
+
+
+  
+
+
+  }
+
+}

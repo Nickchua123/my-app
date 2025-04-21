@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend&display=swap');
+
+.confirm-page {
+  font-family: 'Lexend', sans-serif;
+  background: #f9fafb;
+  min-height: 100vh;
+  padding: 2rem;
+  font-weight: bold;
+
+  .container {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+  }
+
+  .main-content {
+
+    .top {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .bottom {
+      margin-top: 50px;
+    }
+
+    .back-to-shop-btn {
+      height: 40px;
+      background-color: #999;
+      color: white;
+      border-radius: 30px;
+      font-size: 16px;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30%;
+      margin-top: 1rem;
+      border: none;
+    
+      &:hover {
+        background-color: #139d21;
+      }
+    }
+  }
+  .product-list {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+
+    .product-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30px;
+      border-bottom: 1px solid #eeeeee; 
+
+      &:last-child {
+        border-bottom: none
+      }
+    }
+
+    .product-info {
+      display: flex;
+      flex: 1;
+
+      .product-name {
+        font-size: 14px;
+        flex: 0.3;
+        margin-left: 20px;
+        font-weight: bold;
+      }
+  
+      img {
+        flex: 0.2;
+        width: 5px
+      }
+    }
+
+    .quantity {
+      flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 50px; // hoặc 2rem nếu muốn rộng hơn
+      
+
+        .unit-price {
+          margin-left: 10px;
+          font-size: 16px;
+
+        }
+    }
+
+    .price {
+      color: #666;
+    }
+  }
+  .summary-box {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 24px;
+    margin-top: 32px;
+    border-radius: 30px;
+    width: 96.8%;
+    font-family: Arial, sans-serif;
+  }
+  
+  .summary-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 15px;
+  }
+  
+  .label {
+    color: #999;
+  }
+  
+  .summary-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eee;
+    padding-top: 16px;
+    margin-top: 16px;
+    font-weight: bold;
+    font-size: 18px;
+  }
+  
+  .total-amount {
+    color: #e53935;
+  }
+  
+}
+
+  

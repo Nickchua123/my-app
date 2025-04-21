@@ -1,0 +1,25 @@
+.confirm-btn {
+    height: 40px;
+    background-color: #999;
+    color: white;
+    border-radius: 30px;
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 1rem;
+    border: none;
+  
+    &:hover {
+      background-color: #139d21;
+    }
+  
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+  
