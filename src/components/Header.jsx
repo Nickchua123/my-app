@@ -1,140 +1,84 @@
-import { useState } from "react";
-import { ShoppingCart, Menu } from "lucide-react";
-import { Link } from "react-router-dom";
-import Modal from "./Modal";
-import SearchBar from "./SearchBar";
-import UserMenu from "./UserMenu";
-import CartMenu from "./CartMenu";
-import LoginForm from "./LoginForm";
-import RegisterForm from "./RegisterForm";
-import ForgotPasswordForm from "./ForgotPasswordForm";
-import allProducts from "./data/products";
-import { useCart } from "../context/CartContext"; // ✅ Sử dụng context thay vì cart mẫu
+import { Link, useLocation } from "react-router-dom";
+import { useCart } from "../context/CartContext";
+import { useUser } from "../context/UserContext";
+import AvatarDropdown from "../components/AvatarDropdown";
 
 export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [user, setUser] = useState({ isLoggedIn: false, name: "" });
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [showForgotModal, setShowForgotModal] = useState(false);
-
   const { cartItems } = useCart();
+  const { currentUser } = useUser();
+  const location = useLocation();
 
-  const suggestions = allProducts
-    .map((p) => p.name)
-    .filter((name) => name.toLowerCase().includes(searchQuery.toLowerCase()))
-    .slice(0, 6);
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setUser({ isLoggedIn: true, name: "Nguyễn Văn A" });
-    setShowLoginModal(false);
-  };
-
-  const handleRegister = (e) => {
-    e.preventDefault();
-    setUser({ isLoggedIn: true, name: "Nguyễn Văn A" });
-    setShowRegisterModal(false);
-  };
-
-  const handleLogout = () => {
-    setUser({ isLoggedIn: false, name: "" });
-  };
-
-  const handleForgot = (e) => {
-    e.preventDefault();
-    alert("Liên kết khôi phục đã được gửi tới email của bạn!");
-    setShowForgotModal(false);
-  };
-
-  const switchToLogin = () => {
-    setShowRegisterModal(false);
-    setShowForgotModal(false);
-    setTimeout(() => setShowLoginModal(true), 300);
-  };
-
-  const switchToRegister = () => {
-    setShowLoginModal(false);
-    setTimeout(() => setShowRegisterModal(true), 300);
-  };
-
-  const switchToForgot = () => {
-    setShowLoginModal(false);
-    setTimeout(() => setShowForgotModal(true), 300);
-  };
-
-  return (
-    <>
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-md py-4 px-6 flex flex-col md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <ShoppingCart size={28} className="text-gray-900 dark:text-white" />
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">My Shop</h1>
+  // Ẩn header ở trang login/register
+  if (["/login", "/register"].includes(location.pathname)) {
+    return (
+      <header className="bg-white shadow p-4 sticky top-0 z-50">
+        <div className="container mx-auto flex justify-between items-center">
+          <Link to="/" className="text-2xl font-bold text-orange-500">
+            ← Về trang chủ
           </Link>
-          <button
-            className="md:hidden p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 transition duration-300"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <Menu size={24} className="text-gray-800 dark:text-white" />
-          </button>
-        </div>
-
-        <SearchBar
-          menuOpen={menuOpen}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          suggestions={suggestions}
-        />
-
-        <div className="flex items-center space-x-4 mt-4 md:mt-0 relative">
-          <UserMenu
-            user={user}
-            setShowLoginModal={setShowLoginModal}
-            setShowRegisterModal={setShowRegisterModal}
-            handleLogout={handleLogout}
-          />
-
-          <CartMenu />
         </div>
       </header>
+    );
+  }
 
-      {/* Modal đăng nhập */}
-      <Modal
-        show={showLoginModal}
-        title="Đăng nhập"
-        onClose={() => setShowLoginModal(false)}
-      >
-        <LoginForm
-          handleLogin={handleLogin}
-          switchToRegister={switchToRegister}
-          switchToForgot={switchToForgot}
-        />
-      </Modal>
+  return (
+    <header className="bg-white shadow p-4 sticky top-0 z-50">
+      <div className="container mx-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        {/* Logo */}
+        <Link to="/" className="text-2xl font-bold text-orange-500">
+          COMPU
+        </Link>
 
-      {/* Modal đăng ký */}
-      <Modal
-        show={showRegisterModal}
-        title="Đăng ký"
-        onClose={() => setShowRegisterModal(false)}
-      >
-        <RegisterForm
-          handleRegister={handleRegister}
-          switchToLogin={switchToLogin}
-        />
-      </Modal>
+        {/* Tìm kiếm */}
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Tìm kiếm sản phẩm..."
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-orange-500"
+          />
+        </div>
 
-      {/* Modal quên mật khẩu */}
-      <Modal
-        show={showForgotModal}
-        title="Khôi phục mật khẩu"
-        onClose={() => setShowForgotModal(false)}
-      >
-        <ForgotPasswordForm
-          handleForgot={handleForgot}
-          switchToLogin={switchToLogin}
-        />
-      </Modal>
-    </>
+        {/* Nav + User */}
+        <div className="flex items-center gap-6">
+          <nav className="hidden sm:flex gap-4">
+            <Link to="/category/laptop" className="hover:text-orange-500 font-medium">
+              Laptop
+            </Link>
+            <Link to="/category/pc" className="hover:text-orange-500 font-medium">
+              PC
+            </Link>
+            <Link to="/category/accessories" className="hover:text-orange-500 font-medium">
+              Phụ kiện
+            </Link>
+          </nav>
+
+          {/* Avatar hoặc đăng nhập */}
+          {currentUser ? (
+            <AvatarDropdown />
+          ) : (
+            <>
+              <Link to="/login" className="text-sm font-medium hover:text-orange-500">
+                Đăng nhập
+              </Link>
+              <Link to="/register" className="text-sm font-medium hover:text-orange-500">
+                Đăng ký
+              </Link>
+            </>
+          )}
+
+          {/* Cart icon */}
+          <Link to="/cart" className="relative">
+            <span className="text-2xl">🛒</span>
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
+          </Link>
+        </div>
+      </div>
+    </header>
   );
 }

@@ -1,27 +1,26 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import CategoryPage from "./pages/CategoryPage";
-import { CartProvider } from "./context/CartContext";
-import HomePage from "./pages/HomePage";
+// App.jsx
+import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
-import AdminLayout from "./admin/AdminLayout";
-import AdminDashboard from "./admin/AdminDashboard";
-import ProductManager from "./admin/ProductManager";
-import CategoryManager from "./admin/CategoryManager"; // nếu bạn tạo
-
+import HomePage from "./pages/HomePage";
+import LoginForm from "./components/LoginForm";
+import RegisterForm from "./components/RegisterForm";
+import CategoryPage from "./pages/CategoryPage"; // nếu có thêm trang category
+import ProfileUser from "./pages/ProfileUser";
+import { UserProvider } from "./context/UserContext";  // Import UserProvider
 
 function App() {
   return (
-    <CartProvider>
-      
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/category/:slug" element={<CategoryPage />} />
-          </Routes>
-        </Layout>
-      </Router>
-    </CartProvider>
+    <UserProvider> {/* Bao bọc App bằng UserProvider */}
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route path="profile" element={<ProfileUser />} />
+          <Route path="login" element={<LoginForm />} />
+          <Route path="register" element={<RegisterForm />} />
+          <Route path="category/:slug" element={<CategoryPage />} /> {/* nếu có */}
+        </Route>
+      </Routes>
+    </UserProvider>
   );
 }
 

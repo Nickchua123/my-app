@@ -1,59 +1,61 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function CategoryManager() {
   const [categories, setCategories] = useState([]);
   const [newId, setNewId] = useState("");
   const [newLabel, setNewLabel] = useState("");
   const [errors, setErrors] = useState({});
-  const [editData, setEditData] = useState(null); // ✅ State sửa
+  const [editData, setEditData] = useState(null);
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("categories");
-    if (stored) {
-      setCategories(JSON.parse(stored));
-    } else {
-      const defaultCats = [
-        { id: "fashion", label: "Thời trang" },
-        { id: "electronics", label: "Điện tử" },
-        { id: "tools", label: "Công cụ" },
-        { id: "furniture", label: "Nội thất" },
-      ];
-      setCategories(defaultCats);
-      localStorage.setItem("categories", JSON.stringify(defaultCats));
-    }
+    fetchCategories();
   }, []);
 
-  const saveToStorage = (data) => {
-    localStorage.setItem("categories", JSON.stringify(data));
-    setCategories(data);
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/api/v1/categories");
+      setCategories(res.data.data); // hoặc res.data tuỳ cấu trúc
+    } catch (err) {
+      console.error("❌ Lỗi khi tải danh mục:", err);
+    }
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const newErrors = {};
     if (!newId.trim()) newErrors.id = "Vui lòng nhập ID danh mục.";
     if (!newLabel.trim()) newErrors.label = "Vui lòng nhập tên danh mục.";
-    if (categories.find((c) => c.id === newId.trim()))
-      newErrors.id = "ID đã tồn tại.";
-
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    const newList = [...categories, { id: newId.trim(), label: newLabel.trim() }];
-    saveToStorage(newList);
-    setNewId("");
-    setNewLabel("");
-    setErrors({});
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xoá?")) {
-      const newList = categories.filter((c) => c.id !== id);
-      saveToStorage(newList);
+    try {
+      await axios.post("http://localhost:8080/api/v1/categories", {
+        id: newId.trim(),
+        label: newLabel.trim(),
+      });
+      setNewId("");
+      setNewLabel("");
+      fetchCategories();
+    } catch (err) {
+      console.error("❌ Lỗi khi thêm danh mục:", err);
+      alert("Lỗi khi thêm danh mục!");
     }
   };
 
-  const handleEditSubmit = (e) => {
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xoá?")) return;
+
+    try {
+      await axios.delete(`http://localhost:8080/api/v1/categories/${id}`);
+      fetchCategories();
+    } catch (err) {
+      console.error("❌ Lỗi khi xoá danh mục:", err);
+      alert("Xoá thất bại!");
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = {};
@@ -61,13 +63,18 @@ export default function CategoryManager() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    const updated = categories.map((cat) =>
-      cat.id === editData.id ? { ...cat, label: editData.label.trim() } : cat
-    );
-    saveToStorage(updated);
-    setEditData(null);
-    setShowForm(false);
-    setErrors({});
+    try {
+      await axios.put(
+        `http://localhost:8080/api/v1/categories/${editData.id}`,
+        { id: editData.id, label: editData.label.trim() }
+      );
+      setEditData(null);
+      setShowForm(false);
+      fetchCategories();
+    } catch (err) {
+      console.error("❌ Lỗi khi cập nhật:", err);
+      alert("Lỗi khi cập nhật danh mục!");
+    }
   };
 
   const inputClass = "border p-2 rounded w-full";
@@ -177,9 +184,7 @@ export default function CategoryManager() {
                 <label className="block mb-1 font-medium">Tên danh mục</label>
                 <input
                   type="text"
-                  className={`border p-2 rounded w-full ${
-                    errors.label ? "border-red-500" : ""
-                  }`}
+                  className={`border p-2 rounded w-full ${errors.label ? "border-red-500" : ""}`}
                   value={editData.label}
                   onChange={(e) =>
                     setEditData({ ...editData, label: e.target.value })

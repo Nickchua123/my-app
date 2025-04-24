@@ -8,7 +8,7 @@ export default function useCategories() {
   useEffect(() => {
     axios.get("http://localhost:8080/api/v1/categories")
       .then((res) => {
-        console.log("✅ Danh mục từ BE:", res.data); // log kết quả
+        //    console.log("✅ Danh mục từ BE:", res.data); // log kết quả
 
         setCategories(res.data.data);
       })

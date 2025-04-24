@@ -1,53 +1,82 @@
-// UserContext.jsx – Quản lý đăng nhập người dùng (không phải admin)
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import api from "../Config/axiosConfig"; // Đã có interceptor tự refresh token
 
 const UserContext = createContext();
 
 export function UserProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // Khi app load lại: lấy token và user từ localStorage, sau đó xác thực lại từ BE
   useEffect(() => {
-    const stored = localStorage.getItem("currentUser");
-    if (stored) {
-      setCurrentUser(JSON.parse(stored));
+    const token = localStorage.getItem("accessToken");
+    const savedUser = localStorage.getItem("currentUser");
+
+    if (token && savedUser) {
+      const user = JSON.parse(savedUser);
+      setCurrentUser(user);
+
+      // Lấy lại dữ liệu user từ backend (nếu token hết hạn sẽ được interceptor xử lý)
+      api
+        .get("/users/me")
+        .then((response) => {
+          setCurrentUser(response.data.data);
+          localStorage.setItem("currentUser", JSON.stringify(response.data.data));
+        })
+        .catch((error) => {
+          console.error("Error fetching user:", error);
+          // Nếu lỗi 401 do hết hạn refresh sẽ tự logout bởi interceptor, còn các lỗi khác chỉ log
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, []);
 
-  const login = (email, password) => {
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const user = users.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (user) {
-      setCurrentUser(user);
+  // Đăng nhập
+  const login = async (email, password) => {
+    try {
+      const res = await api.post("/auth/login", {
+        username: email,
+        password,
+      });
+      const { accessToken, refreshToken, user } = res.data.data;
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("currentUser", JSON.stringify(user));
+      setCurrentUser(user);
       return true;
+    } catch (error) {
+      console.error("Login failed:", error);
+      return false;
     }
-    return false;
   };
 
-  const register = (userData) => {
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    if (users.some((u) => u.email === userData.email)) return false;
-
-    const newUser = {
-      ...userData,
-      id: Date.now().toString(),
-    };
-    const updated = [...users, newUser];
-    localStorage.setItem("users", JSON.stringify(updated));
-    setCurrentUser(newUser);
-    localStorage.setItem("currentUser", JSON.stringify(newUser));
-    return true;
+  // Đăng ký
+  const register = async (data) => {
+    try {
+      await api.post("/create", data);
+      return true;
+    } catch (error) {
+      console.error("Registration failed:", error);
+      return false;
+    }
   };
 
+  // Đăng xuất
   const logout = () => {
-    setCurrentUser(null);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("currentUser");
+    setCurrentUser(null);
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <UserContext.Provider value={{ currentUser, login, logout, register }}>
+    <UserContext.Provider value={{ currentUser, setCurrentUser, login, logout, register }}>
       {children}
     </UserContext.Provider>
   );

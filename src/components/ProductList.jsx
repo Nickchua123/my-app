@@ -1,20 +1,38 @@
+// ProductList.jsx: Hiển thị danh sách sản phẩm trên giao diện người dùng, có nút "Thêm vào giỏ hàng".
+
 import { useCart } from "../context/CartContext";
 
 export default function ProductList({ products }) {
   const { addToCart } = useCart();
 
+  const getImageUrl = (product) => {
+    const img = product.images?.[0];
+    console.log(img);
+
+    return img
+      ? `http://localhost:8080/storage/Product-${product.id}/${img}`
+      : "https://via.placeholder.com/300x200?text=No+Image";
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       {products.map((product) => (
-        <div key={product.id} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col justify-between">
-          <img src={product.imageUrl} alt={product.name} className="w-full h-48 object-cover rounded-t mb-2" />
-          <div>
-            <h2 className="text-lg font-semibold mb-1">{product.name}</h2>
-            <p className="text-gray-600 mb-2">Giá: {product.price.toLocaleString()} đ</p>
-          </div>
+        <div
+          key={product.id}
+          className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition flex flex-col"
+        >
+          <img
+            src={getImageUrl(product)}
+            alt={product.name}
+            className="w-full h-48 object-cover rounded-lg mb-3"
+          />
+          <h2 className="text-lg font-bold text-gray-800 mb-1 truncate">{product.name}</h2>
+          <p className="text-orange-600 font-semibold mb-2">
+            ₫{product.price?.toLocaleString()}
+          </p>
           <button
             onClick={() => addToCart(product)}
-            className="mt-auto w-full py-2 px-4 bg-orange-500 text-white rounded hover:bg-orange-600 transition"
+            className="mt-auto w-full py-2 px-4 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition"
           >
             🛒 Thêm vào giỏ hàng
           </button>

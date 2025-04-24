@@ -1,9 +1,17 @@
+import { useLocation } from "react-router-dom";
 import face from "../assets/Facebook.png";
 import youtu from "../assets/youtube.png";
 import tik from "../assets/tiktok.png";
 import momo from "../assets/MoMo.png";
 
 export default function Footer() {
+  const location = useLocation();
+
+  // Ẩn footer ở trang login và register
+  if (["/login", "/register"].includes(location.pathname)) {
+    return null;
+  }
+
   return (
     <footer className="bg-white text-black py-8 border-t border-gray-300">
       <div className="container mx-auto px-6">
@@ -44,10 +52,10 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-3">TỔNG ĐÀI HỖ TRỢ</h3>
             <ul>
-              <li>Mua hàng: <a href="tel:19005301" className="text-blue-500">1900.5301</a></li>
-              <li>Bảo hành: <a href="tel:19005325" className="text-blue-500">1900.5325</a></li>
-              <li>Khiếu nại: <a href="tel:18006173" className="text-blue-500">1800.6173</a></li>
-              <li>Email: <a href="mailto:cskh@gearvn.com" className="text-blue-500">cskh@gearvn.com</a></li>
+              <li>Mua hàng: <a href="tel:19005301" className="text-blue-500">0398373833</a></li>
+              <li>Bảo hành: <a href="tel:19005325" className="text-blue-500">0395766433</a></li>
+              <li>Khiếu nại: <a href="tel:18006173" className="text-blue-500">the_phach_5</a></li>
+              <li>Email: <a href="mailto:cskh@gearvn.com" className="text-blue-500">thephach5@gmail.com</a></li>
             </ul>
           </div>
 

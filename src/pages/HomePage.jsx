@@ -1,10 +1,27 @@
-import ProductList from "../components/ProductList";
-import allProducts from "../components/data/products";
-import categoryMap from "../components/data/categories";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import ProductList from "../components/ProductList";
+import categoryMap from "../components/data/categories";
+import api from "../Config/axiosConfig";
+import Pagination from "../components/Pagination";
 
 export default function HomePage() {
-  const featuredProducts = allProducts.slice(0, 8); // Sản phẩm nổi bật giả định
+  const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 5;
+
+  useEffect(() => {
+    api.get(`/products?page=${page}&size=${pageSize}`) //  đúng template string
+      .then((res) => {
+        const data = res.data.data;
+        setProducts(data.result || []);
+        setTotalPages(data.meta.pages || 1);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi tải sản phẩm:", err);
+      });
+  }, [page]);
 
   return (
     <div className="p-6 space-y-12">
@@ -40,7 +57,8 @@ export default function HomePage() {
       {/* Sản phẩm nổi bật */}
       <section>
         <h2 className="text-2xl font-bold mb-4">Sản phẩm nổi bật</h2>
-        <ProductList products={featuredProducts} />
+        <ProductList products={products} />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </section>
 
       {/* Chính sách & hỗ trợ */}

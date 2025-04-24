@@ -1,3 +1,4 @@
+// SearchBar.jsx: Tìm kiếm sản phẩm, hiển thị gợi ý và truy cập nhanh danh mục
 import { useState } from "react";
 import { Menu, Search, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -54,7 +55,7 @@ export default function SearchBar({ menuOpen, searchQuery, setSearchQuery, sugge
 
   return (
     <div className={`mt-4 md:mt-0 ${menuOpen ? "block" : "hidden"} md:flex md:items-center md:space-x-4 flex-grow max-w-lg`}>
-      
+
       {/* Nút Danh mục + Dropdown */}
       <div className="relative">
         <button
@@ -85,9 +86,9 @@ export default function SearchBar({ menuOpen, searchQuery, setSearchQuery, sugge
 
       {/* Ô tìm kiếm + gợi ý */}
       <div className="relative flex-grow">
-        <input 
-          type="text" 
-          placeholder="Tìm kiếm sản phẩm..." 
+        <input
+          type="text"
+          placeholder="Tìm kiếm sản phẩm..."
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
@@ -101,7 +102,7 @@ export default function SearchBar({ menuOpen, searchQuery, setSearchQuery, sugge
         {showSuggestions && searchQuery && suggestions.length > 0 && (
           <ul className="absolute w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 mt-1 rounded-md shadow-lg z-50">
             {suggestions.map((item, index) => (
-              <li 
+              <li
                 key={index}
                 className={`px-4 py-2 cursor-pointer ${index === activeIndex ? "bg-blue-100 dark:bg-gray-700" : "hover:bg-gray-200 dark:hover:bg-gray-700"}`}
                 onMouseEnter={() => setActiveIndex(index)}
