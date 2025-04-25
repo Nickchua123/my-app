@@ -1,5 +1,5 @@
 // ProductList.jsx: Hiển thị danh sách sản phẩm trên giao diện người dùng, có nút "Thêm vào giỏ hàng".
-
+import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
 export default function ProductList({ products }) {
@@ -21,12 +21,14 @@ export default function ProductList({ products }) {
           key={product.id}
           className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition flex flex-col"
         >
-          <img
-            src={getImageUrl(product)}
-            alt={product.name}
-            className="w-full h-48 object-cover rounded-lg mb-3"
-          />
-          <h2 className="text-lg font-bold text-gray-800 mb-1 truncate">{product.name}</h2>
+          <Link to={`/product/${product.id}`}>
+            <img
+              src={getImageUrl(product)}
+              alt={product.name}
+              className="w-full h-48 object-cover rounded-lg mb-3"
+            />
+            <h2 className="text-lg font-bold text-gray-800 mb-1 truncate">{product.name}</h2>
+          </Link>
           <p className="text-orange-600 font-semibold mb-2">
             ₫{product.price?.toLocaleString()}
           </p>
