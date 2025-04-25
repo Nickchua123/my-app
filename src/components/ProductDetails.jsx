@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../Config/axiosConfig";
 import { FaCopy } from "react-icons/fa";
@@ -8,10 +8,13 @@ import ProductReviews from "./ProductReviews";
 
 export default function ProductDetail() {
     const { id } = useParams();
+    const navigate = useNavigate();
+
     const [product, setProduct] = useState(null);
     const [mainImgIdx, setMainImgIdx] = useState(0);
     const [loading, setLoading] = useState(true);
     const [count, setReviewsCount] = useState(0);
+
     // Tabs
     const [isDescVisible, setIsDescVisible] = useState(true);
     const [isReviewsVisible, setIsReviewsVisible] = useState(false);
@@ -19,6 +22,9 @@ export default function ProductDetail() {
 
     // Cart quantity
     const [cartQty, setCartQty] = useState(1);
+
+    // Sản phẩm nổi bật (top 6 rating cao nhất)
+    const [featuredProducts, setFeaturedProducts] = useState([]);
 
     // Hàm fetch lại số lượng đánh giá (callback)
     const reloadReviewsCount = async () => {
@@ -50,8 +56,29 @@ export default function ProductDetail() {
     }, [id]);
 
     useEffect(() => {
-        console.log("Số lượng đánh giá (count) sau khi cập nhật: ", count);
-    }, [count]);
+        // Lấy toàn bộ sản phẩm, chọn ngẫu nhiên 10 sản phẩm khác sản phẩm đang xem
+        async function fetchFeatured() {
+            try {
+                const res = await api.get("/products");
+                const all = res.data.data.result || [];
+                console.log("ALL:", all);
+                // Lọc bỏ sản phẩm đang xem
+                const products = all.filter(p => p.id !== Number(id));
+                // Xáo trộn mảng (Fisher-Yates shuffle)
+                for (let i = products.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [products[i], products[j]] = [products[j], products[i]];
+                }
+                // Lấy 10 sản phẩm bất kỳ
+                setFeaturedProducts(products.slice(0, 10));
+            } catch (e) {
+                setFeaturedProducts([]);
+            }
+        }
+        fetchFeatured();
+    }, [id]);
+
+
 
     if (loading)
         return (
@@ -158,69 +185,111 @@ export default function ProductDetail() {
                             Thêm vào giỏ hàng
                         </button>
                     </div>
-                    <div className="border-t my-4"></div>
-                    {/* Tabs */}
-                    <div>
-                        <div className="w-full flex justify-between gap-4 mb-2">
-                            <button
-                                className={`desc-btn ${isDescVisible ? "bg-gray-200 font-bold" : ""} border rounded-lg p-3 w-full hover:bg-gray-300`}
-                                onClick={() => { setIsDescVisible(true); setIsReviewsVisible(false); setIsIntroVisible(false); }}
-                            >
-                                Mô tả
-                            </button>
-                            <button
-                                className={`desc-btn ${isReviewsVisible ? "bg-gray-200 font-bold" : ""} border rounded-lg p-3 w-full hover:bg-gray-300`}
-                                onClick={() => { setIsDescVisible(false); setIsReviewsVisible(true); setIsIntroVisible(false); }}
-                            >
-                                Đánh giá ({count})
-                            </button>
-                            <button
-                                className={`desc-btn ${isIntroVisible ? "bg-gray-200 font-bold" : ""} border rounded-lg p-3 w-full hover:bg-gray-300`}
-                                onClick={() => { setIsDescVisible(false); setIsReviewsVisible(false); setIsIntroVisible(true); }}
-                            >
-                                Giới thiệu với bạn
-                            </button>
-                        </div>
-                        <div className="border-t my-2"></div>
-                        {isDescVisible && (
-                            <div className="mt-6 space-y-4 text-gray-700">
-                                <h2 className="font-semibold text-lg mb-2 text-gray-800">Mô tả chi tiết</h2>
-                                <p>{product.description ?? "Chưa có mô tả cho sản phẩm này."}</p>
-                            </div>
-                        )}
-                        {isReviewsVisible && (
-                            <ProductReviews productId={product.id} onReviewSubmitted={reloadReviewsCount} />
-                        )}
-                        {isIntroVisible && (
-                            <div className="mt-6 space-y-6">
-                                <div className="p-6 bg-white border rounded-lg shadow">
-                                    <h2 className="text-xl font-semibold mb-4">Chương trình giới thiệu</h2>
-                                    <div className="referral-codes space-y-4">
-                                        <div className="bg-gray-100 p-4 rounded shadow">
-                                            <p className="font-semibold">Giới thiệu URL của bạn</p>
-                                            <p className="flex items-center justify-between">
-                                                Mã giới thiệu chỉ có sẵn cho người dùng có ít nhất một đơn đặt hàng.
-                                                <FaCopy className="text-blue-500 cursor-pointer" />
-                                            </p>
-                                        </div>
-                                        <div className="bg-gray-100 p-4 rounded shadow">
-                                            <p className="font-semibold">Mã phiếu giảm giá của bạn để chia sẻ</p>
-                                            <p className="flex items-center justify-between">
-                                                Mã giới thiệu chỉ có sẵn cho người dùng có ít nhất một đơn đặt hàng.
-                                                <FaCopy className="text-blue-500 cursor-pointer" />
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        {/* End tabs */}
-                    </div>
                 </div>
             </div>
-            Sản phẩm nổi bật
-            <div className="border-t my-8"></div>
-            {/* Carousel sản phẩm nổi bật có thể giữ nguyên hoặc code lại nếu cần */}
+
+            {/* ===== Tabs xuống bên dưới ===== */}
+            <div className="border-t my-10"></div>
+            <div className="mt-4">
+                <div className="w-full flex justify-between gap-4 mb-2">
+                    <button
+                        className={`desc-btn ${isDescVisible ? "bg-gray-200 font-bold" : ""} border rounded-lg p-3 w-full hover:bg-gray-300`}
+                        onClick={() => { setIsDescVisible(true); setIsReviewsVisible(false); setIsIntroVisible(false); }}
+                    >
+                        Mô tả
+                    </button>
+                    <button
+                        className={`desc-btn ${isReviewsVisible ? "bg-gray-200 font-bold" : ""} border rounded-lg p-3 w-full hover:bg-gray-300`}
+                        onClick={() => { setIsDescVisible(false); setIsReviewsVisible(true); setIsIntroVisible(false); }}
+                    >
+                        Đánh giá ({count})
+                    </button>
+                    <button
+                        className={`desc-btn ${isIntroVisible ? "bg-gray-200 font-bold" : ""} border rounded-lg p-3 w-full hover:bg-gray-300`}
+                        onClick={() => { setIsDescVisible(false); setIsReviewsVisible(false); setIsIntroVisible(true); }}
+                    >
+                        Giới thiệu với bạn
+                    </button>
+                </div>
+                <div className="border-t my-2"></div>
+                {isDescVisible && (
+                    <div className="mt-6 space-y-4 text-gray-700">
+                        <h2 className="font-semibold text-lg mb-2 text-gray-800">Mô tả chi tiết</h2>
+                        <p>{product.description ?? "Chưa có mô tả cho sản phẩm này."}</p>
+                    </div>
+                )}
+                {isReviewsVisible && (
+                    <ProductReviews productId={product.id} onReviewSubmitted={reloadReviewsCount} />
+                )}
+                {isIntroVisible && (
+                    <div className="mt-6 space-y-6">
+                        <div className="p-6 bg-white border rounded-lg shadow">
+                            <h2 className="text-xl font-semibold mb-4">Chương trình giới thiệu</h2>
+                            <div className="referral-codes space-y-4">
+                                <div className="bg-gray-100 p-4 rounded shadow">
+                                    <p className="font-semibold">Giới thiệu URL của bạn</p>
+                                    <p className="flex items-center justify-between">
+                                        Mã giới thiệu chỉ có sẵn cho người dùng có ít nhất một đơn đặt hàng.
+                                        <FaCopy className="text-blue-500 cursor-pointer" />
+                                    </p>
+                                </div>
+                                <div className="bg-gray-100 p-4 rounded shadow">
+                                    <p className="font-semibold">Mã phiếu giảm giá của bạn để chia sẻ</p>
+                                    <p className="flex items-center justify-between">
+                                        Mã giới thiệu chỉ có sẵn cho người dùng có ít nhất một đơn đặt hàng.
+                                        <FaCopy className="text-blue-500 cursor-pointer" />
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* ===== Sản phẩm nổi bật Carousel ===== */}
+            <div className="border-t my-12"></div>
+            <div className="mt-12 text-center max-w-7xl mx-auto">
+                <h2 className="text-xl font-semibold mb-4">Sản phẩm nổi bật</h2>
+                {featuredProducts.length === 0 ? (
+                    <div>Đang tải sản phẩm nổi bật...</div>
+                ) : (
+                    <Carousel
+                        responsive={carouselResponsive}
+                        infinite
+                        autoPlay
+                        autoPlaySpeed={4000}
+                        className="mx-auto"
+                        arrows
+                    >
+                        {featuredProducts.map((p) => (
+                            <div
+                                key={p.id}
+                                className="carousel-item flex flex-col items-center justify-center bg-white p-4 rounded-lg shadow-md mx-2 cursor-pointer"
+                                onClick={() => navigate(`/products/${p.id}`)}
+                            >
+                                <img
+                                    src={p.images?.[0] ? `http://localhost:8080/storage/Product-${p.id}/${p.images[0]}` : "/no-image.png"}
+                                    alt={p.name}
+                                    className="w-52 h-32 object-contain mb-3 rounded border"
+                                />
+                                <h3 className="text-lg font-semibold">{p.name}</h3>
+                                <p className="mt-2 text-lg font-bold text-green-600">
+                                    {p.price?.toLocaleString()} đ
+                                </p>
+                                <button
+                                    className="mt-2 px-4 py-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition text-sm"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        navigate(`/products/${p.id}`);
+                                    }}
+                                >
+                                    Xem chi tiết
+                                </button>
+                            </div>
+                        ))}
+                    </Carousel>
+                )}
+            </div>
         </div>
     );
 }
