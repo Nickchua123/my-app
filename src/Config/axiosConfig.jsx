@@ -11,9 +11,9 @@ api.interceptors.request.use((config) => {
     const token = localStorage.getItem("accessToken");
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log("🔐 Gửi token:", token);
+        console.log(" Gửi token:", token);
     } else {
-        console.warn("⚠️ Không tìm thấy token");
+        console.warn(" Không tìm thấy token");
     }
     return config;
 });
@@ -32,7 +32,7 @@ api.interceptors.response.use(undefined, async (error) => {
             const newToken = res.data.accessToken;
             localStorage.setItem("accessToken", newToken);
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            return api(originalRequest); // 👈 retry
+            return api(originalRequest);
         } catch (err) {
             localStorage.removeItem("accessToken");
             window.location.href = "/login"; // Chuyển về login nếu refresh cũng fail

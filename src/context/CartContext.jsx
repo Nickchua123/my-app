@@ -6,16 +6,18 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
 
-  const addToCart = (product) => {
+  const addToCart = (product, quantity = 1) => { //  Nhận vào một đối tượng sản phẩm 
     setCartItems((prevItems) => {
-      const existing = prevItems.find((item) => item.id === product.id);
+      const existing = prevItems.find((item) => item.id === product.id); // Tìm xem spham đã có trong giỏ hàng chưa 
       if (existing) {
         return prevItems.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantity }
             : item
+
         );
       }
+      // Nếu sản phẩm chưa có trong giỏ hàng 
       return [...prevItems, { ...product, quantity: 1 }];
     });
   };

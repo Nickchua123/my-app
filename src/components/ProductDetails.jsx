@@ -5,10 +5,13 @@ import { FaCopy } from "react-icons/fa";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 import ProductReviews from "./ProductReviews";
-
+import { useCart } from "../context/CartContext";
+import { toast } from 'react-toastify';
 export default function ProductDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
+
+    const { addToCart } = useCart();
 
     const [product, setProduct] = useState(null);
     const [mainImgIdx, setMainImgIdx] = useState(0);
@@ -61,7 +64,7 @@ export default function ProductDetail() {
             try {
                 const res = await api.get("/products");
                 const all = res.data.data.result || [];
-                console.log("ALL:", all);
+
                 // Lọc bỏ sản phẩm đang xem
                 const products = all.filter(p => p.id !== Number(id));
                 // Xáo trộn mảng (Fisher-Yates shuffle)
@@ -141,7 +144,7 @@ export default function ProductDetail() {
                     <h1 className="font-bold text-2xl text-gray-900">{product.name}</h1>
                     <p className="text-gray-600 flex justify-between items-center">
                         <span>
-                            <span className="line-through text-red-400 mr-2">{product.priceOld ?? "₫200.00"}</span>
+                            {/* <span className="line-through text-red-400 mr-2">{product.priceOld ?? "₫200.00"}</span> */}
                             <span className="font-bold text-green-600 text-xl">{product.price?.toLocaleString()} đ</span>
                         </span>
                         <span>
@@ -161,30 +164,41 @@ export default function ProductDetail() {
                     </ul>
                     <div className="border-t my-4"></div>
                     {/* Giá + số lượng + giỏ */}
-                    <div className="flex items-center gap-4 mt-2 flex-wrap">
-                        <span className="text-gray-500">Số lượng:</span>
+                    <div className="flex flex-col gap-3 mt-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-gray-500">Số lượng:</span>
+                            <button
+                                className="w-8 h-8 border rounded flex items-center justify-center text-base font-bold hover:bg-gray-100 transition"
+                                onClick={() => setCartQty(q => Math.max(1, q - 1))}
+                                type="button"
+                            >-</button>
+                            <input
+                                type="number"
+                                value={cartQty}
+                                min="1"
+                                onChange={e => setCartQty(Math.max(1, Number(e.target.value)))}
+                                className="w-10 h-8 border rounded text-center font-semibold"
+                            />
+                            <button
+                                className="w-8 h-8 border rounded flex items-center justify-center text-base font-bold hover:bg-gray-100 transition"
+                                onClick={() => setCartQty(q => q + 1)}
+                                type="button"
+                            >+</button>
+                        </div>
                         <button
-                            className="px-3 py-1 border rounded-lg text-lg"
-                            onClick={() => setCartQty(q => Math.max(1, q - 1))}
-                        >-</button>
-                        <input
-                            type="number"
-                            value={cartQty}
-                            min="1"
-                            onChange={e => setCartQty(Math.max(1, Number(e.target.value)))}
-                            className="w-14 px-2 border rounded text-center"
-                        />
-                        <button
-                            className="px-3 py-1 border rounded-lg text-lg"
-                            onClick={() => setCartQty(q => q + 1)}
-                        >+</button>
-                        <button
-                            className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition font-semibold text-lg ml-6"
-                            onClick={handleAddToCart}
+                            className="w-full px-4 h-10 bg-green-600 text-white rounded hover:bg-green-700 transition font-semibold text-base"
+                            onClick={() => {
+                                if (window.confirm(`Bạn muốn thêm sản phẩm "${product.name}" số lượng ${cartQty} vào giỏ hàng không?`)) {
+                                    // Xử lý thêm vào giỏ hàng ở đây (hoặc gọi handleAddToCart())
+                                    alert(`Đã thêm "${product.name}" số lượng ${cartQty} vào giỏ hàng!`);
+                                }
+                            }}
+                            type="button"
                         >
                             Thêm vào giỏ hàng
                         </button>
                     </div>
+
                 </div>
             </div>
 
