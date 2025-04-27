@@ -1,64 +1,57 @@
-import { useState } from "react";
-import { ShoppingCart } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import { Link } from "react-router-dom";
 
 export default function CartMenu() {
-  const [cartHover, setCartHover] = useState(false);
   const { cartItems } = useCart();
-
-  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  return (
-    <div
-      className="relative"
-      onMouseEnter={() => setCartHover(true)}
-      onMouseLeave={() => setCartHover(false)}
-    >
-      <button className="relative p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 transition duration-500">
-        <ShoppingCart size={20} className="text-gray-800 dark:text-white" />
-        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">
-          {totalQuantity}
-        </span>
-      </button>
+  if (cartItems.length === 0) {
+    return (
+      <div className="absolute right-0 top-8 mt-2 w-80 bg-white shadow-lg rounded-lg p-4 z-50 text-center text-gray-500">
+        Giỏ hàng trống.
+      </div>
+    );
+  }
 
-      {cartHover && (
-        <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-900 shadow-lg rounded-md p-4 z-50">
-          <h3 className="text-lg font-semibold mb-2">Giỏ hàng ({totalQuantity} sản phẩm)</h3>
-          <ul className="max-h-40 overflow-y-auto">
-            {cartItems.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center space-x-2 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
-              >
-                <img
-                  src={item.image || item.imageUrl}
-                  alt={item.name}
-                  className="w-10 h-10 object-cover rounded"
-                />
-                <div className="flex-grow">
-                  <p className="text-gray-800 dark:text-gray-200 text-sm">{item.name}</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-xs">x{item.quantity}</p>
-                </div>
-                <p className="text-gray-800 dark:text-gray-200 text-sm">
-                  ₫{(item.price * item.quantity).toLocaleString()}
-                </p>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-2 font-semibold text-gray-800 dark:text-gray-200">
-            Tổng: ₫{totalAmount.toLocaleString()}
-          </div>
-          <div className="mt-4 flex space-x-2">
-            <button className="flex-1 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded hover:bg-gray-300 transition duration-300">
-              Xem giỏ hàng
-            </button>
-            <button className="flex-1 py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300">
-              Thanh toán
-            </button>
-          </div>
-        </div>
-      )}
+  return (
+    <div className="absolute right-0 top-8 mt-2 w-80 bg-white shadow-lg rounded-lg p-4 z-50">
+      <h3 className="font-semibold text-lg mb-2">Sản phẩm trong giỏ</h3>
+      <ul className="max-h-56 overflow-y-auto">
+        {cartItems.map(item => (
+          <li key={item.id} className="flex gap-2 items-center mb-2 border-b last:border-b-0 pb-2">
+            <img
+              src={
+                item.image ||                // Nếu có trường image (chuẩn nhất)
+                (item.images?.[0]           // Nếu có mảng images
+                  ? `http://localhost:8080/storage/Product-${item.id}/${item.images[0]}`
+                  : "/no-image.png")
+              }
+              alt={item.name}
+              className="w-12 h-12 object-cover rounded border"
+            />
+            <div className="flex-1 text-sm">
+              <div className="font-medium">{item.name}</div>
+              <div>Số lượng: {item.quantity}</div>
+            </div>
+            <div className="font-bold text-orange-600 whitespace-nowrap">
+              ₫{(item.price * item.quantity).toLocaleString()}
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="flex justify-between items-center mt-4">
+        <span className="font-semibold">Tổng:</span>
+        <span className="font-bold text-green-600 text-lg">
+          ₫{totalAmount.toLocaleString()}
+        </span>
+      </div>
+      <Link
+        to="/cart"
+        className="block mt-4 py-2 bg-orange-500 text-white text-center rounded hover:bg-orange-600 transition font-semibold"
+      >
+        Xem giỏ hàng
+      </Link>
     </div>
   );
 }

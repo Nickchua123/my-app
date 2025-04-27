@@ -38,6 +38,12 @@ export default function ProductDetail() {
             setReviewsCount(0);
         }
     };
+    // addToCart({
+    //     ...product,
+    //     image: product.images?.[0]
+    //         ? `http://localhost:8080/storage/Product-${product.id}/${product.images[0]}`
+    //         : "/no-image.png"
+    // }, cartQty);
 
     useEffect(() => {
         async function fetchProductDetails() {
@@ -95,11 +101,7 @@ export default function ProductDetail() {
             </div>
         );
 
-    const handleAddToCart = () => {
-        alert(
-            `Đã thêm "${product.name}" số lượng ${cartQty} vào giỏ hàng!`
-        );
-    };
+
 
     const carouselResponsive = {
         desktop: { breakpoint: { max: 3000, min: 1024 }, items: 4, partialVisibilityGutter: 40 },
@@ -186,17 +188,21 @@ export default function ProductDetail() {
                             >+</button>
                         </div>
                         <button
-                            className="w-full px-4 h-10 bg-green-600 text-white rounded hover:bg-green-700 transition font-semibold text-base"
                             onClick={() => {
-                                if (window.confirm(`Bạn muốn thêm sản phẩm "${product.name}" số lượng ${cartQty} vào giỏ hàng không?`)) {
-                                    // Xử lý thêm vào giỏ hàng ở đây (hoặc gọi handleAddToCart())
-                                    alert(`Đã thêm "${product.name}" số lượng ${cartQty} vào giỏ hàng!`);
+                                if (window.confirm(`Bạn muốn thêm "${product.name}" số lượng ${cartQty} vào giỏ hàng không?`)) {
+                                    addToCart({
+                                        ...product,
+                                        image: product.images?.[0]
+                                            ? `http://localhost:8080/storage/Product-${product.id}/${product.images[0]}`
+                                            : "/no-image.png"
+                                    }, cartQty);
+                                    toast.success(`Đã thêm "${product.name}" số lượng ${cartQty} vào giỏ hàng!`);
                                 }
                             }}
-                            type="button"
                         >
                             Thêm vào giỏ hàng
                         </button>
+
                     </div>
 
                 </div>
