@@ -58,6 +58,9 @@ export default function HomePage() {
     );
   }, []);
 
+  //  render Brand test truốc
+
+
   // Render ra props brand
   const handleBrandChange = (brand) => {
     setSelectedBrand(brand); // Set up cho selectBrand
@@ -169,7 +172,7 @@ export default function HomePage() {
 
 
 
-            {/* Sản phẩm bán chạy */}
+            {/* Sản phẩm bán chạy
             <section className="w-full flex flex-col items-center">
               <div className="flex justify-between items-center w-full mb-2">
                 <h2 className="text-xl font-bold">🔥 Bán chạy nhất</h2>
@@ -181,18 +184,18 @@ export default function HomePage() {
             </section>
 
             {/* Banner quảng cáo nhỏ */}
-            <section className="my-6 w-full flex justify-center">
+            {/* <section className="my-6 w-full flex justify-center">
               <Link to="/promotions">
                 <img
-                  src="/ad-promo.png"
+                  src={BannerImg}
                   alt="Promo Banner"
                   className="rounded-xl shadow-lg mx-auto max-h-40 object-cover"
                 />
               </Link>
-            </section>
+            </section> */}
 
             {/* Hàng mới về - sản phẩm random */}
-            <section className="my-12 w-full flex flex-col items-center">
+            {/* <section className="my-12 w-full flex flex-col items-center">
               <div className="flex justify-between items-center w-full mb-2">
                 <h2 className="text-xl font-bold">🌟 Hàng mới về</h2>
                 <span className="text-gray-500 text-sm">Xem tất cả</span>
@@ -220,7 +223,7 @@ export default function HomePage() {
                   ))}
                 </Slider>
               </div>
-            </section>
+            </section>  */}
 
             {/* Sản phẩm theo hãng */}
             <section className="my-12 w-full flex flex-col items-center">

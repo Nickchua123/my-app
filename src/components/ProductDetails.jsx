@@ -11,7 +11,8 @@ export default function ProductDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const { addToCart } = useCart();
+    const { setCartItems } = useCart();
+
 
     const [product, setProduct] = useState(null);
     const [mainImgIdx, setMainImgIdx] = useState(0);
@@ -38,12 +39,22 @@ export default function ProductDetail() {
             setReviewsCount(0);
         }
     };
-    // addToCart({
-    //     ...product,
-    //     image: product.images?.[0]
-    //         ? `http://localhost:8080/storage/Product-${product.id}/${product.images[0]}`
-    //         : "/no-image.png"
-    // }, cartQty);
+    const handleAddToCart = async () => {
+        try {
+            // Gửi request POST lên BE
+            await api.post("/cart/add", {
+                productId: product.id,
+                quantity: cartQty
+            });
+            // Lấy lại giỏ hàng mới nhất (nếu muốn đồng bộ FE context)
+            const res = await api.get("/cart");
+            setCartItems(res.data.data); // Nếu có context
+            toast.success(`Đã thêm "${product.name}" vào giỏ hàng với số lượng "${cartQty}`);
+        } catch (error) {
+            console.log(error);
+            toast.error("Có lỗi khi thêm vào giỏ hàng!");
+        }
+    };
 
     useEffect(() => {
         async function fetchProductDetails() {
@@ -189,19 +200,14 @@ export default function ProductDetail() {
                         </div>
                         <button
                             onClick={() => {
-                                if (window.confirm(`Bạn muốn thêm "${product.name}" số lượng ${cartQty} vào giỏ hàng không?`)) {
-                                    addToCart({
-                                        ...product,
-                                        image: product.images?.[0]
-                                            ? `http://localhost:8080/storage/Product-${product.id}/${product.images[0]}`
-                                            : "/no-image.png"
-                                    }, cartQty);
-                                    toast.success(`Đã thêm "${product.name}" số lượng ${cartQty} vào giỏ hàng!`);
+                                if (window.confirm(`Bạn muốn thêm "${product.name}" vào giỏ hàng không?`)) {
+                                    handleAddToCart();
                                 }
                             }}
                         >
                             Thêm vào giỏ hàng
                         </button>
+
 
                     </div>
 

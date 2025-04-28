@@ -8,7 +8,7 @@ import CategoryPage from "./pages/CategoryPage"; // nếu có thêm trang catego
 import ProfileUser from "./pages/ProfileUser";
 import ProductDetail from "./components/ProductDetails";
 import PromotionPage from "./components/PromotionPage";
-import CartMenu from "./components/CartMenu";
+// import CartMenu from "./components/CartMenu";
 import { UserProvider } from "./context/UserContext";  // Import UserProvider
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -31,7 +31,7 @@ function App() {
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="category/:slug" element={<CategoryPage />} /> {/* nếu có */}
             <Route path="/brand/:brandName" element={<BrandProductPages />} />
-            <Route path="/cart" element={<CartMenu />} />
+            {/* <Route path="/cart" element={<CartMenu />} /> */}
             <Route path="/promotions" element={<PromotionPage />} />
 
           </Route>
