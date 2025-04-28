@@ -1,25 +1,19 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter as Router } from "react-router-dom";
-import { UserProvider } from './context/UserContext';
-import { CartProvider } from './context/CartContext';
-import { AuthProvider } from './context/AuthContext';
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import App from "./App";
+import Admin from "./admin";
+import "./index.css";
 
-import App from './App';
-import './index.css';
-import Admin from './admin';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    {/* <Router> */}
-    {/* <UserProvider>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </UserProvider> */}
-    <AuthProvider>
-
-      <Admin />
-    </AuthProvider>
-    {/* </Router> */}
+    <Router>
+      <Routes>
+        {/* Tất cả user page */}
+        <Route path="/*" element={<App />} />
+        {/* Trang admin, mọi url /admin sẽ vào hệ thống admin */}
+        <Route path="/admin/*" element={<Admin />} />
+      </Routes>
+    </Router>
   </StrictMode>
 );
