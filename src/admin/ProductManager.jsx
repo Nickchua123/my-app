@@ -27,7 +27,7 @@ export default function ProductManager() {
   const fetchProducts = async (page = 0) => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/v1/products/brand/Gaming?page=${page}&size=${pageSize}`
+        `http://localhost:8080/api/v1/products?page=${page}&size=${pageSize}`
       );
       const data = res.data.data;
 

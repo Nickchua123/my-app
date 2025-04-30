@@ -42,18 +42,20 @@ export default function CategoryManager() {
       alert("Lỗi khi thêm danh mục!");
     }
   };
-
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xoá?")) return;
 
     try {
       await axios.delete(`http://localhost:8080/api/v1/categories/${id}`);
       fetchCategories();
+      alert("Xoá danh mục thành công!");
     } catch (err) {
       console.error("❌ Lỗi khi xoá danh mục:", err);
-      alert("Xoá thất bại!");
+      alert("Không thể xoá danh mục vì còn sản phẩm!");
     }
   };
+
+
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();

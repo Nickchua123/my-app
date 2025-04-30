@@ -1,43 +1,41 @@
-// ReviewManager.jsx - Quản lý đánh giá sản phẩm
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import api from "../Config/axiosConfig";
 
 export default function ReviewManager() {
+  const { productId } = useParams();
   const [reviews, setReviews] = useState([]);
   const [filterRating, setFilterRating] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const stored = localStorage.getItem("reviews");
-    if (stored) {
-      setReviews(JSON.parse(stored));
-    } else {
-      const dummy = [
-        {
-          id: 1,
-          productName: "Laptop Dell XPS",
-          customer: "Nguyễn Văn A",
-          rating: 5,
-          comment: "Sản phẩm tuyệt vời, hiệu năng mạnh!",
-          createdAt: "2024-04-01T10:00:00",
-        },
-        {
-          id: 2,
-          productName: "Chuột Logitech",
-          customer: "Trần Thị B",
-          rating: 3,
-          comment: "Tạm ổn, hơi nhỏ tay.",
-          createdAt: "2024-04-02T15:00:00",
-        },
-      ];
-      setReviews(dummy);
-      localStorage.setItem("reviews", JSON.stringify(dummy));
-    }
-  }, []);
+    fetchReviews();
+  }, [productId]);
 
-  const handleDelete = (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xoá đánh giá này?")) {
-      const updated = reviews.filter((r) => r.id !== id);
-      setReviews(updated);
-      localStorage.setItem("reviews", JSON.stringify(updated));
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/products/reviews?page=0&size=20`);
+      console.log(res.data.data.content);
+      setReviews(res.data.data.content);
+    } catch (err) {
+      console.error(err);
+      setError("Lỗi tải đánh giá.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (reviewId) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa đánh giá này?")) return;
+    try {
+      await api.delete(`/products/reviews/${reviewId}`);
+      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      alert("✅ Đã xóa đánh giá thành công!");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Xóa đánh giá thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -45,6 +43,9 @@ export default function ReviewManager() {
     filterRating === "all"
       ? reviews
       : reviews.filter((r) => r.rating === Number(filterRating));
+
+  if (loading) return <div className="p-6">Đang tải đánh giá...</div>;
+  if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (
     <div className="p-6">
@@ -68,28 +69,26 @@ export default function ReviewManager() {
         <table className="w-full bg-white shadow rounded text-sm">
           <thead className="bg-gray-100 text-left">
             <tr>
-              <th className="p-3">Sản phẩm</th>
               <th className="p-3">Khách</th>
               <th className="p-3">Sao</th>
               <th className="p-3">Bình luận</th>
               <th className="p-3">Ngày</th>
-              <th className="p-3 text-center">Hành động</th>
+              <th className="p-3 text-center">Hành động</th> {/* ✅ Thêm cột Hành động */}
             </tr>
           </thead>
           <tbody>
             {filtered.map((r) => (
               <tr key={r.id} className="border-t hover:bg-gray-50">
-                <td className="p-3 font-medium">{r.productName}</td>
-                <td className="p-3">{r.customer}</td>
+                <td className="p-3 font-medium">{r.user?.name || "Ẩn danh"}</td>
                 <td className="p-3">{r.rating} ⭐</td>
-                <td className="p-3 text-sm">{r.comment}</td>
+                <td className="p-3 text-sm">{r.review}</td>
                 <td className="p-3">{new Date(r.createdAt).toLocaleDateString()}</td>
                 <td className="p-3 text-center">
                   <button
                     onClick={() => handleDelete(r.id)}
                     className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                   >
-                    🗑️ Xoá
+                    🗑️ Xóa
                   </button>
                 </td>
               </tr>

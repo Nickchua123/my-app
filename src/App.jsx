@@ -12,13 +12,15 @@ import { CartProvider } from "./context/CartContext";
 import BrandProductPages from "./pages/BrandProductPages";
 import CheckoutPage from "./pages/CheckoutPage";
 import { ToastContainer } from 'react-toastify';
+import PaymentResult from "./pages/PaymentResult";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
 import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
     <CartProvider>
       <UserProvider>
-        <ToastContainer position="top-right" autoClose={2500} />
+        <ToastContainer position="bottom-right" autoClose={2500} />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
@@ -30,6 +32,9 @@ function App() {
             <Route path="/brand/:brandName" element={<BrandProductPages />} />
             <Route path="/promotions" element={<PromotionPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/order-success" element={<OrderSuccessPage />} />
+            <Route path="/payment-result" element={<PaymentResult />} />
+
           </Route>
         </Routes>
       </UserProvider>

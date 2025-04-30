@@ -39,22 +39,20 @@ export default function BrandProductPage() {
     });
     const [filter, setFilter] = useState(filterDraft);
 
-    function buildFilter() {
+    function buildFilter(currentFilter) {
         let filters = [];
-        if (filter.name) filters.push(`name=*"${filter.name}"`);
-        if (filter.priceRange[0] > 0) filters.push(`price>=${filter.priceRange[0]}`);
-        if (filter.priceRange[1] < 50000000) filters.push(`price<=${filter.priceRange[1]}`);
-        if (filter.selectedCpu) filters.push(`cpu=="${filter.selectedCpu}"`);
-        if (filter.selectedRam) filters.push(`ram==${filter.selectedRam}`);
-        if (filter.selectedStatus) filters.push(`status=="${filter.selectedStatus}"`);
-        if (filter.selectedScreen) filters.push(`screenSize==${filter.selectedScreen}`);
-        if (filter.selectedGpu) filters.push(`gpu=="${filter.selectedGpu}"`);
-        if (filter.selectedStorageTypes.length) {
+        if (currentFilter.name) filters.push(`name=*"${currentFilter.name}"`);
+        if (currentFilter.priceRange[0] > 0) filters.push(`price>=${currentFilter.priceRange[0]}`);
+        if (currentFilter.priceRange[1] < 50000000) filters.push(`price<=${currentFilter.priceRange[1]}`);
+        if (currentFilter.selectedCpu) filters.push(`cpu=="${currentFilter.selectedCpu}"`);
+        if (currentFilter.selectedRam) filters.push(`ram==${currentFilter.selectedRam}`);
+        if (currentFilter.selectedStatus) filters.push(`status=="${currentFilter.selectedStatus}"`);
+        if (currentFilter.selectedScreen) filters.push(`screenSize==${currentFilter.selectedScreen}`);
+        if (currentFilter.selectedGpu) filters.push(`gpu=="${currentFilter.selectedGpu}"`);
+        if (currentFilter.selectedStorageTypes.length) {
             filters.push(
                 "(" +
-                filter.selectedStorageTypes
-                    .map(type => `storageType=="${type}"`)
-                    .join(" or ") +
+                currentFilter.selectedStorageTypes.map(type => `storageType=="${type}"`).join(" or ") +
                 ")"
             );
         }
@@ -63,9 +61,10 @@ export default function BrandProductPage() {
 
     useEffect(() => {
         let query = `?page=${page}&size=8`;
-        const filterStr = buildFilter();
+        const filterStr = buildFilter(filter); // 💥 Pass đúng filter vào đây
         if (filterStr) query += `&filter=${encodeURIComponent(filterStr)}`;
         if (filter.sort) query += `&sort=${filter.sort}`;
+
         api.get(`/products/brand/${brandName}${query}`).then(res => {
             setProducts(res.data.data?.result || []);
             setMeta(res.data.data?.meta || {});
