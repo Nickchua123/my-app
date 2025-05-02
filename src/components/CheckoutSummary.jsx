@@ -7,7 +7,7 @@ export default function CheckoutSummary({ cartItems = [], shippingFee = 25000, o
     );
     const total = subtotal + shippingFee;
 
-    return (
+    return (    
         <div className="bg-white rounded-xl shadow-md p-6 max-w-lg mx-auto">
             <h2 className="text-xl font-bold text-orange-600 mb-3">Đơn hàng của bạn</h2>
             <ul className="divide-y mb-4">

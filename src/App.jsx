@@ -10,6 +10,7 @@ import PromotionPage from "./components/PromotionPage";
 import { UserProvider } from "./context/UserContext";
 import { CartProvider } from "./context/CartContext";
 import BrandProductPages from "./pages/BrandProductPages";
+import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import { ToastContainer } from 'react-toastify';
 import PaymentResult from "./pages/PaymentResult";
@@ -31,6 +32,7 @@ function App() {
             <Route path="category/:slug" element={<CategoryPage />} />
             <Route path="/brand/:brandName" element={<BrandProductPages />} />
             <Route path="/promotions" element={<PromotionPage />} />
+            <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-success" element={<OrderSuccessPage />} />
             <Route path="/payment-result" element={<PaymentResult />} />

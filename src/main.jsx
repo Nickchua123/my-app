@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import App from "./App";
 import Admin from "./admin";
 import "./index.css";
-
+//  Nơi khởi tạo cho toàn bộ ứng dụng
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Router>
