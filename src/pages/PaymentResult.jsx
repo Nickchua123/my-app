@@ -1,87 +1,75 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../Config/axiosConfig";
 import { toast } from "react-toastify";
 
 export default function PaymentResult() {
+    const { search } = useLocation();
     const navigate = useNavigate();
-    const [status, setStatus] = useState("loading");
+    const [order, setOrder] = useState(null);
 
     useEffect(() => {
-        const handlePaymentResult = async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const txnRef = urlParams.get('vnp_TxnRef');
-            const responseCode = urlParams.get('vnp_ResponseCode');
-            const secureHash = urlParams.get('vnp_SecureHash');
+        const params = new URLSearchParams(search);
+        const responseCode = params.get("vnp_ResponseCode");
+        const txnRef = params.get("vnp_TxnRef");
 
-            if (!txnRef || !responseCode || !secureHash) {
-                setStatus("error");
-                return;
-            }
+        if (!txnRef) {
+            toast.error("Không tìm thấy mã đơn hàng.");
+            return navigate("/checkout");
+        }
 
-            try {
-                // Gửi callback về backend để xác nhận giao dịch
-                await api.post("/orders/payment-callback", {
-                    orderId: txnRef,
-                    success: responseCode === "00"  // thành công nếu responseCode = 00
-                });
+        // Gọi API lấy thông tin đơn hàng
+        api.get(`/orders/${txnRef}`)
+            .then((res) => {
+                const fetchedOrder = res.data.data;
+                setOrder(fetchedOrder);
 
+                // Nếu thanh toán thành công => gọi API callback cập nhật trạng thái
                 if (responseCode === "00") {
-                    setStatus("success");
-                } else {
-                    setStatus("failed");
+                    api.post("/orders/payment-callback", {
+                        orderId: txnRef,
+                        success: true
+                    }).then(() => {
+                        console.log("✅ Payment status updated via callback");
+                    }).catch(() => {
+                        toast.warn("Không cập nhật được trạng thái đơn hàng.");
+                    });
                 }
-            } catch (error) {
-                console.error(error);
-                setStatus("error");
-            }
-        };
+            })
+            .catch(() => {
+                toast.error("Không tìm thấy đơn hàng.");
+                navigate("/checkout");
+            });
 
-        handlePaymentResult();
-    }, [navigate]);
+        if (responseCode !== "00") {
+            toast.warning("Thanh toán thất bại hoặc bị huỷ.");
+        }
+    }, []);
 
-    const handleGoHome = () => {
-        navigate("/");
-    };
+    if (!order) return <p className="text-center py-20">Đang tải đơn hàng...</p>;
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4">
-            {status === "loading" && (
-                <div className="text-gray-600 text-lg">Đang xác nhận giao dịch...</div>
-            )}
-            {status === "success" && (
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-green-600 mb-4">Thanh toán thành công! 🎉</h2>
-                    <button
-                        onClick={handleGoHome}
-                        className="mt-4 bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700"
-                    >
-                        Về trang chủ
-                    </button>
-                </div>
-            )}
-            {status === "failed" && (
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-red-600 mb-4">Thanh toán thất bại. 😥</h2>
-                    <button
-                        onClick={handleGoHome}
-                        className="mt-4 bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700"
-                    >
-                        Về trang chủ
-                    </button>
-                </div>
-            )}
-            {status === "error" && (
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-yellow-600 mb-4">Lỗi xác nhận giao dịch. 😓</h2>
-                    <button
-                        onClick={handleGoHome}
-                        className="mt-4 bg-yellow-600 text-white py-2 px-6 rounded-lg hover:bg-yellow-700"
-                    >
-                        Về trang chủ
-                    </button>
-                </div>
-            )}
+        <div className="max-w-3xl mx-auto p-6">
+            <h1 className="text-2xl font-bold text-green-600 mb-4">🎉 Đặt hàng thành công!</h1>
+            <p className="mb-6 text-gray-600">
+                Cảm ơn bạn, <strong>{order.customerName || order.user?.name}</strong>! Đơn hàng của bạn đã được ghi nhận.
+            </p>
+
+            <h2 className="text-lg font-semibold mb-2">Chi tiết đơn hàng</h2>
+            <ul className="divide-y border rounded">
+                {order.orderItems.map((item, i) => (
+                    <li key={i} className="flex justify-between items-center p-3">
+                        <span>{item.product?.name} x {item.quantity}</span>
+                        <span className="text-orange-600 font-medium">
+                            ₫{(item.quantity * item.price).toLocaleString()}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+
+            <div className="mt-4 border-t pt-3 text-right font-bold text-lg">
+                Tổng tiền: ₫{order.totalAmount.toLocaleString()}
+            </div>
         </div>
     );
 }
