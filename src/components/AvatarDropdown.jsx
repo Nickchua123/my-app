@@ -57,9 +57,10 @@ export default function AvatarDropdown() {
                     <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100 text-sm">
                         👤 Thông tin cá nhân
                     </Link>
-                    <Link to="/orders" className="block px-4 py-2 hover:bg-gray-100 text-sm">
+                    <Link to="/my-orders" className="block px-4 py-2 hover:bg-gray-100">
                         📦 Đơn hàng
                     </Link>
+
                     <button
                         onClick={handleLogout}
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-500"

@@ -15,6 +15,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import { ToastContainer } from 'react-toastify';
 import PaymentResult from "./pages/PaymentResult";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
+import MyOrdersPage from "./pages/MyOrdersPage";
 import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
@@ -34,6 +35,8 @@ function App() {
             <Route path="/promotions" element={<PromotionPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/my-orders" element={<MyOrdersPage />} />
+
             <Route path="/order-success" element={<OrderSuccessPage />} />
             <Route path="/vnpay/return" element={<PaymentResult />} />
 
