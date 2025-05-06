@@ -35,7 +35,7 @@ api.interceptors.response.use(undefined, async (error) => {
             return api(originalRequest);
         } catch (err) {
             localStorage.removeItem("accessToken");
-            window.location.href = "/login"; // Chuyển về login nếu refresh cũng fail
+            //    window.location.href = "/login"; // Chuyển về login nếu refresh cũng fail
         }
     }
 
