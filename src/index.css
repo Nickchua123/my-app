@@ -13,3 +13,26 @@
     scrollbar-width: thin;
     scrollbar-color: #ffd7ba #fff;
 }
+
+@media print {
+    .print\:hidden {
+        display: none !important;
+    }
+
+    .invoice-content {
+        box-shadow: none !important;
+        padding: 40px !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .invoice-content img {
+        width: 120px !important;
+        height: 120px !important;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

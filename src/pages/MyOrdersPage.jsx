@@ -34,7 +34,7 @@ export default function MyOrdersPage() {
     const [selectedOrder, setSelectedOrder] = useState(null);
 
     useEffect(() => {
-        let url = `/orders/my?page=${page}&size=5`;
+        let url = `/orders/my?page=${page}&size=3`;
         if (statusFilter !== "all") url += `&status=${statusFilter}`;
 
         if (dateRange !== "all") {
@@ -58,29 +58,52 @@ export default function MyOrdersPage() {
         const element = document.querySelector(".invoice-content");
         if (!element) return;
 
-        // ⚠️ Gỡ màu oklch: ép style đơn giản để tránh lỗi
+        const printButton = element.querySelector(".print-hidden");
+        if (printButton) printButton.style.display = "none";
+
+        // 👇 Cho browser có thời gian render lại DOM
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Đảm bảo ảnh load xong
+        const images = element.querySelectorAll("img");
+        const loadPromises = Array.from(images).map((img) =>
+            img.complete ? Promise.resolve() : new Promise((res) => {
+                img.onload = img.onerror = res;
+            })
+        );
+        await Promise.all(loadPromises);
+
+        // Gỡ màu để export đẹp
         const originalStyles = [];
         element.querySelectorAll("*").forEach((el, i) => {
             originalStyles[i] = {
                 color: el.style.color,
                 backgroundColor: el.style.backgroundColor,
+                paddingTop: el.style.paddingTop,
             };
             el.style.color = "#000";
             el.style.backgroundColor = "transparent";
+            if (el.tagName === "IMG") {
+                el.style.paddingTop = "20px"; // 👈 hoặc dùng Tailwind class `pt-2`
+            }
         });
 
-        const canvas = await html2canvas(element);
+        // Chụp
+        const canvas = await html2canvas(element, {
+            useCORS: true,
+            scale: 2
+        });
         const imgData = canvas.toDataURL("image/png");
         const pdf = new jsPDF();
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
         pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
         const fileName = `don-hang-${selectedOrder.id}.pdf`;
         pdf.save(fileName);
 
-        // ✅ Gửi file PDF qua email (giả định API đã tồn tại)
+        // Gửi email
         const blob = pdf.output("blob");
         const formData = new FormData();
         formData.append("file", blob, fileName);
@@ -94,12 +117,16 @@ export default function MyOrdersPage() {
             alert("Gửi email thất bại. Vui lòng thử lại sau.");
         }
 
-        // ✅ Khôi phục lại style ban đầu
+        // Khôi phục style
+        if (printButton) printButton.style.display = "block";
         element.querySelectorAll("*").forEach((el, i) => {
             el.style.color = originalStyles[i].color;
             el.style.backgroundColor = originalStyles[i].backgroundColor;
+            el.style.paddingTop = originalStyles[i].paddingTop;
         });
     }
+
+
 
 
     return (
@@ -191,33 +218,47 @@ export default function MyOrdersPage() {
 
             {selectedOrder && (
                 <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-                    <div className="bg-white w-full max-w-2xl rounded-lg p-6 relative shadow-lg max-h-[90vh] overflow-y-auto invoice-content">
-                        <button onClick={() => setSelectedOrder(null)} className="absolute top-2 right-2 text-xl text-gray-500 hover:text-black">×</button>
-                        <h2 className="text-xl font-bold mb-4">🧾 Đơn hàng #{selectedOrder.id}</h2>
-                        <div className="text-sm space-y-1 mb-4">
-                            <p><strong>Ngày đặt:</strong> {new Date(selectedOrder.orderDate).toLocaleString()}</p>
-                            <p><strong>Trạng thái:</strong> {STATUS_LABELS[selectedOrder.paymentStatus]}</p>
-                            <p><strong>Tổng tiền:</strong> ₫{selectedOrder.totalAmount.toLocaleString()}</p>
+                    <div className="bg-white w-full max-w-3xl rounded-lg p-10 relative shadow-lg max-h-[90vh] overflow-y-auto invoice-content space-y-6 leading-relaxed text-[16px]">
+                        <button onClick={() => setSelectedOrder(null)} className="absolute top-3 right-3 text-xl text-gray-500 hover:text-black print:hidden">×</button>
+                        <h2 className="text-2xl font-bold mb-4">🧾 Đơn hàng #{selectedOrder.id}</h2>
+
+                        <div className="space-y-1">
+                            <p><span className="font-semibold inline-block w-32">🗓️ Ngày đặt:</span>{new Date(selectedOrder.orderDate).toLocaleString()}</p>
+                            <p><span className="font-semibold inline-block w-32">📌 Trạng thái:</span>{STATUS_LABELS[selectedOrder.paymentStatus]}</p>
+                            <p><span className="font-semibold inline-block w-32">💰 Tổng tiền:</span>₫{selectedOrder.totalAmount.toLocaleString()}</p>
                         </div>
-                        <div className="border-t pt-4">
-                            <h3 className="font-semibold mb-2">📦 Sản phẩm:</h3>
-                            {selectedOrder.items?.map((item, idx) => (
-                                <div key={idx} className="flex gap-3 items-center border-b py-2">
-                                    <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded" />
-                                    <div className="flex-1 text-sm">
-                                        <p className="font-medium">{item.name}</p>
-                                        <p>Số lượng: {item.quantity}</p>
-                                        <p>Giá: ₫{item.price.toLocaleString()}</p>
+
+                        <div>
+                            <h3 className="font-semibold text-lg mt-6 mb-20">📦 Sản phẩm:</h3>
+                            <div className="space-y-4">
+                                {selectedOrder.items?.map((item, idx) => (
+                                    <div key={idx} className="flex gap-5 items-center border-b pb-4 pt-4">
+                                        <img
+                                            crossOrigin="anonymous"
+                                            src={`http://localhost:8080/storage/Product-${item.productId}/${item.imageUrl}`}
+                                            alt={item.productName}
+                                            className="w-24 h-24 object-cover rounded border shadow-sm"
+                                        />
+                                        <div className="flex-1 text-sm space-y-1">
+                                            <p className="font-semibold text-base">{item.productName}</p>
+                                            <p>Số lượng: {item.quantity}</p>
+                                            <p>Giá: ₫{item.price.toLocaleString()}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                        <button onClick={handlePrint} className="mt-4 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
-                            🖨️ In hoá đơn PDF
-                        </button>
+
+                        {/* Ẩn khi in */}
+                        <div className="print:hidden">
+                            <button onClick={handlePrint} className="mt-6 px-6 py-3 bg-orange-500 text-white rounded hover:bg-orange-600">
+                                🖨️ In hoá đơn PDF
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
+
         </div>
     );
 }
