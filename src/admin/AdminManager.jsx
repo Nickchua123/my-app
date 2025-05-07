@@ -14,10 +14,10 @@ export default function AdminManager() {
 
   useEffect(() => {
     // Gọi API để lấy dữ liệu với phân trang
-    api.get(`/users?page=${currentPage - 1}&size=3`)  // Gửi request với trang hiện tại và số lượng item mỗi trang
+    api.get(`/users?page=${currentPage - 1}&size=2`)  // Gửi request với trang hiện tại và số lượng item mỗi trang
       .then((response) => {
         setAdmins(response.data.data.result); // Dữ liệu admin
-
+        // console.log(response.data.data.result);
         setTotalPages(response.data.data.meta.pages); // Số trang
         setTotalItems(response.data.data.totalItems); // Tổng số item
       })
@@ -26,6 +26,7 @@ export default function AdminManager() {
       });
   }, [currentPage]);  // Gọi lại mỗi khi trang thay đổi
 
+  console.log(admins);
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -58,26 +59,40 @@ export default function AdminManager() {
       alert("❌ Đã có lỗi xảy ra khi tạo tài khoản.");
     }
   };
-
-
   const handleDelete = (id) => {
+    console.log("ID cần xóa: ", id);
+
     if (id === current) {
       alert("⚠️ Không thể xoá chính tài khoản đang đăng nhập.");
       return;
     }
-    if (window.confirm("Bạn có chắc chắn muốn xoá admin này?")) {
+
+    if (window.confirm("Bạn có chắc chắn muốn xoá tài khoản này?")) {
       // Gửi yêu cầu xóa admin từ backend bằng ID
       api.delete(`/users/${id}`)  // Gửi yêu cầu xóa admin từ backend
         .then(() => {
-          setAdmins(admins.filter((admin) => admin.id !== id)); // Cập nhật lại danh sách admins
-          alert("🗑️ Đã xoá admin thành công.");
+          // Sau khi xóa, gọi lại API để lấy lại danh sách admins mới
+          api.get(`/users?page=${currentPage - 1}&size=2`) // Gọi lại API với trang hiện tại
+            .then((response) => {
+              setAdmins(response.data.data.result); // Cập nhật lại danh sách admin
+              setTotalPages(response.data.data.meta.pages); // Cập nhật số trang
+              setTotalItems(response.data.data.totalItems); // Cập nhật tổng số items
+
+              alert("🗑️ Đã xoá thành công.");
+            })
+            .catch((error) => {
+              console.error("Lỗi khi lấy lại dữ liệu sau khi xóa:", error);
+              alert("❌ Có lỗi khi lấy lại dữ liệu sau khi xóa");
+            });
         })
         .catch((error) => {
-          console.error("Lỗi khi xóa admin:", error);
-          alert("❌ Có lỗi khi xóa admin.");
+          console.error("Lỗi khi xóa:", error);
+          alert("❌ Có lỗi khi xóa");
         });
     }
   };
+
+
 
 
   // Lọc admin theo vai trò
@@ -128,7 +143,7 @@ export default function AdminManager() {
           </thead>
           <tbody>
             {filteredAdmins.map((admin) => (
-              <tr key={admin.email} className="border-t hover:bg-gray-50">
+              <tr key={admin.id} className="border-t hover:bg-gray-50">
                 <td className="p-3">{admin.email}</td>
                 <td className="p-3">{admin.name}</td>
                 <td className="p-3">{admin.address}</td>

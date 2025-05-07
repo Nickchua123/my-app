@@ -7,7 +7,7 @@ export default function AdminForm({ onSubmit, initialData = null }) {
   const [fullName, setFullName] = useState("");  // Sử dụng fullName thay vì name
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [role, setRole] = useState("admin"); // Default role is 'admin'
+  const [role, setRole] = useState("ADMIN"); // Default role is 'admin'
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -23,28 +23,41 @@ export default function AdminForm({ onSubmit, initialData = null }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    let roleData = {};
+
+    if (role === "ADMIN") {
+      roleData = { id: 1, name: "ADMIN" };
+    } else if (role === "MANAGE") {
+      roleData = { id: 3, name: "MANAGE" };
+    } else if (role === "USER") {
+      roleData = { id: 2, name: "USER" };
+    }
+
     const userData = {
       email,
       password,
       name: fullName,  // Change `fullName` to `name`
       address,
       phone,
-      // role, // Đảm bảo role được truyền đúng
+      role: roleData,  // Gửi role dưới dạng đối tượng
     };
+    console.log("Dữ liệu gửi đi: ", userData);  // Kiểm tra dữ liệu
 
     try {
       let response;
       //  console.log(userData);  // Kiểm tra dữ liệu gửi lên backend
-      console.log("Vai trò hiện tại ", role);
+      console.log("Vai trò hiện tại: ", role);
+      console.log("Dữ liệu gửi đi: ", userData);
+
       // Gửi yêu cầu tạo người dùng hoặc admin tùy theo vai trò
-      if (role === "ADMIN") {
+      if (role == "ADMIN") {
         response = await axios.post("http://localhost:8080/api/v1/createAdmin", userData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
         });
       }
-      if (role === "MANAGE") {
+      else if (role == "MANAGE") {
         response = await axios.post("http://localhost:8080/api/v1/createManage", userData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -65,7 +78,7 @@ export default function AdminForm({ onSubmit, initialData = null }) {
         alert("❌ Có lỗi khi tạo tài khoản.");
       }
     } catch (error) {
-      console.error(error);
+      console.log(error);
       alert("❌ Đã có lỗi xảy ra khi tạo tài khoản.");
     }
   };
