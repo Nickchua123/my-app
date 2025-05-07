@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import api from "../Config/axiosConfig";  // Import axios instance đã cấu hình
 import AdminForm from "./AdminForm";
 
 export default function AdminManager() {
@@ -6,70 +7,84 @@ export default function AdminManager() {
   const [showForm, setShowForm] = useState(false);
   const [editData, setEditData] = useState(null);
   const [roleFilter, setRoleFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
+  const [totalPages, setTotalPages] = useState(0); // Tổng số trang
+  const [totalItems, setTotalItems] = useState(0); // Tổng số items
   const current = localStorage.getItem("currentAdmin");
 
   useEffect(() => {
-    const stored = localStorage.getItem("admins");
-    if (stored) {
-      setAdmins(JSON.parse(stored));
-    } else {
-      const defaultAdmins = [
-        {
-          email: "admin@gmail.com",
-          password: "admin123",
-          fullName: "Quản trị viên",
-          phone: "0123456789",
-          address: "Hà Nội",
-          role: "admin",
-        },
-      ];
-      localStorage.setItem("admins", JSON.stringify(defaultAdmins));
-      setAdmins(defaultAdmins);
-    }
-  }, []);
+    // Gọi API để lấy dữ liệu với phân trang
+    api.get(`/users?page=${currentPage - 1}&size=3`)  // Gửi request với trang hiện tại và số lượng item mỗi trang
+      .then((response) => {
+        setAdmins(response.data.data.result); // Dữ liệu admin
 
-  const saveAdmins = (data) => {
-    localStorage.setItem("admins", JSON.stringify(data));
-    setAdmins(data);
+        setTotalPages(response.data.data.meta.pages); // Số trang
+        setTotalItems(response.data.data.totalItems); // Tổng số item
+      })
+      .catch((error) => {
+        console.error("Lỗi khi lấy dữ liệu từ API:", error);
+      });
+  }, [currentPage]);  // Gọi lại mỗi khi trang thay đổi
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
-
-  const handleAddOrUpdate = (adminData) => {
+  const handleAddOrUpdate = async (adminData) => {
     const isEditing = !!editData;
     let updated;
-    if (isEditing) {
-      updated = admins.map((admin) =>
-        admin.email === editData.email ? { ...admin, ...adminData } : admin
-      );
-      alert("✅ Cập nhật admin thành công.");
-    } else {
-      if (admins.some((admin) => admin.email === adminData.email)) {
-        alert("❌ Email đã tồn tại. Vui lòng dùng email khác.");
-        return;
+    try {
+      if (isEditing) {
+        updated = admins.map((admin) =>
+          admin.email === editData.email ? { ...admin, ...adminData } : admin
+        );
+      } else {
+        if (admins.some((admin) => admin.email === adminData.email)) {
+          alert("❌ Email đã tồn tại. Vui lòng dùng email khác.");
+          return;
+        }
+        updated = [adminData, ...admins];  // Thêm người dùng mới vào đầu danh sách
+        alert("✅ Thêm mới thành công.");
       }
-      updated = [...admins, adminData];
-      alert("✅ Thêm admin mới thành công.");
+
+      setAdmins(updated);  // Cập nhật lại danh sách admin
+      setShowForm(false);
+      setEditData(null);
+      setCurrentPage(1);  // Quay lại trang đầu khi thêm admin mới
+
+      // Không cần gọi api.post() ở đây nữa, đã thực hiện trong AdminForm.jsx
+
+    } catch (error) {
+      console.error(error);
+      alert("❌ Đã có lỗi xảy ra khi tạo tài khoản.");
     }
-    saveAdmins(updated);
-    setShowForm(false);
-    setEditData(null);
   };
 
-  const handleDelete = (email) => {
-    if (email === current) {
+
+  const handleDelete = (id) => {
+    if (id === current) {
       alert("⚠️ Không thể xoá chính tài khoản đang đăng nhập.");
       return;
     }
     if (window.confirm("Bạn có chắc chắn muốn xoá admin này?")) {
-      const updated = admins.filter((admin) => admin.email !== email);
-      saveAdmins(updated);
-      alert("🗑️ Đã xoá admin thành công.");
+      // Gửi yêu cầu xóa admin từ backend bằng ID
+      api.delete(`/users/${id}`)  // Gửi yêu cầu xóa admin từ backend
+        .then(() => {
+          setAdmins(admins.filter((admin) => admin.id !== id)); // Cập nhật lại danh sách admins
+          alert("🗑️ Đã xoá admin thành công.");
+        })
+        .catch((error) => {
+          console.error("Lỗi khi xóa admin:", error);
+          alert("❌ Có lỗi khi xóa admin.");
+        });
     }
   };
 
+
+  // Lọc admin theo vai trò
   const filteredAdmins =
     roleFilter === "all"
       ? admins
-      : admins.filter((admin) => admin.role === roleFilter);
+      : admins.filter((admin) => admin.role.name === roleFilter);  // Kiểm tra admin.role trước khi truy cập name
 
   return (
     <div className="p-6 relative">
@@ -93,9 +108,9 @@ export default function AdminManager() {
           onChange={(e) => setRoleFilter(e.target.value)}
         >
           <option value="all">📋 Tất cả quyền</option>
-          <option value="admin">🛠️ Admin</option>
-          <option value="manager">📁 Manager</option>
-          <option value="viewer">👀 Viewer</option>
+          <option value="ADMIN">🛠️ Admin</option>
+          <option value="MANAGE">📁 Manager</option>
+          <option value="USER">👀 Người dùng</option>
         </select>
       </div>
 
@@ -106,20 +121,18 @@ export default function AdminManager() {
             <tr>
               <th className="p-3">Email</th>
               <th className="p-3">Họ tên</th>
-              <th className="p-3">SĐT</th>
               <th className="p-3">Địa chỉ</th>
               <th className="p-3">Quyền</th>
-              <th className="p-3 text-center">Hành động</th>
+              <th className="p-3 text-center">Chỉnh sửa</th>
             </tr>
           </thead>
           <tbody>
             {filteredAdmins.map((admin) => (
               <tr key={admin.email} className="border-t hover:bg-gray-50">
                 <td className="p-3">{admin.email}</td>
-                <td className="p-3">{admin.fullName}</td>
-                <td className="p-3">{admin.phone}</td>
+                <td className="p-3">{admin.name}</td>
                 <td className="p-3">{admin.address}</td>
-                <td className="p-3 capitalize">{admin.role}</td>
+                <td className="p-3 capitalize">{admin.role?.name || "Không có vai trò"}</td>
                 <td className="p-3 text-center space-x-2">
                   <button
                     onClick={() => {
@@ -132,7 +145,7 @@ export default function AdminManager() {
                   </button>
                   {admin.email !== current && (
                     <button
-                      onClick={() => handleDelete(admin.email)}
+                      onClick={() => handleDelete(admin.id)}
                       className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                     >
                       🗑️ Xoá
@@ -143,6 +156,27 @@ export default function AdminManager() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center space-x-4 mt-4">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+        >
+          &lt; Trước
+        </button>
+        <span className="px-4 py-2 text-sm">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+        >
+          Sau &gt;
+        </button>
       </div>
 
       {/* Form Modal */}

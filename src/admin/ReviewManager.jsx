@@ -1,101 +1,162 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import api from "../Config/axiosConfig";
+import { useState, useEffect } from "react";
+import axios from "../Config/axiosConfig";  // Import axios hoặc API service của bạn
 
-export default function ReviewManager() {
-  const { productId } = useParams();
-  const [reviews, setReviews] = useState([]);
-  const [filterRating, setFilterRating] = useState("all");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+export default function AdminForm({ onSubmit, initialData = null }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");  // Sử dụng fullName thay vì name
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [role, setRole] = useState("admin"); // Default role is 'admin'
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    fetchReviews();
-  }, [productId]);
+    if (initialData) {
+      setEmail(initialData.email);
+      setFullName(initialData.fullName);  // Cập nhật với fullName
+      setPhone(initialData.phone);
+      setAddress(initialData.address);
+      setRole(initialData.role);
+    }
+  }, [initialData]);
 
-  const fetchReviews = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const userData = {
+      email,
+      password,
+      name: fullName,  // Change `fullName` to `name`
+      address,
+      phone,
+    };
+
     try {
-      setLoading(true);
-      const res = await api.get(`/products/reviews?page=0&size=20`);
-      console.log(res.data.data.content);
-      setReviews(res.data.data.content);
-    } catch (err) {
-      console.error(err);
-      setError("Lỗi tải đánh giá.");
-    } finally {
-      setLoading(false);
+      let response;
+      console.log("Vai trò hiện tại ", role);
+      // Gửi yêu cầu tạo người dùng hoặc admin tùy theo vai trò
+      if (role === "ADMIN") {
+        response = await axios.post("http://localhost:8080/api/v1/createAdmin", userData, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+      } else if (role === "MANAGE") {
+        response = await axios.post("http://localhost:8080/api/v1/createManage", userData, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+      } else {
+        response = await axios.post("http://localhost:8080/api/v1/createUser", userData, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+      }
+
+      if (response.status === 201) {
+        alert("✅ Tạo tài khoản thành công.");
+        onSubmit(userData); // Gọi callback onSubmit từ AdminManager.jsx để cập nhật dữ liệu
+      } else {
+        alert("❌ Có lỗi khi tạo tài khoản.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("❌ Đã có lỗi xảy ra khi tạo tài khoản.");
     }
   };
-
-  const handleDelete = async (reviewId) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa đánh giá này?")) return;
-    try {
-      await api.delete(`/products/reviews/${reviewId}`);
-      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
-      alert("✅ Đã xóa đánh giá thành công!");
-    } catch (err) {
-      console.error(err);
-      alert("❌ Xóa đánh giá thất bại. Vui lòng thử lại.");
-    }
-  };
-
-  const filtered =
-    filterRating === "all"
-      ? reviews
-      : reviews.filter((r) => r.rating === Number(filterRating));
-
-  if (loading) return <div className="p-6">Đang tải đánh giá...</div>;
-  if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">⭐ Quản lý đánh giá sản phẩm</h1>
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto">
+      <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">
+        {initialData ? "Cập nhật" : "Thêm"} Tài Khoản Admin
+      </h2>
 
-      <div className="flex justify-between items-center mb-4">
-        <span>Tổng: {filtered.length} đánh giá</span>
-        <select
-          className="border p-2 rounded"
-          value={filterRating}
-          onChange={(e) => setFilterRating(e.target.value)}
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+            placeholder="admin@example.com"
+            disabled={initialData ? true : false}
+          />
+        </div>
+
+        {/* Password Field */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+              placeholder="••••••••"
+            />
+            <span
+              className="absolute top-3 right-3 cursor-pointer text-gray-500"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {/* Heroicons */}
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Họ tên</label>
+          <input
+            type="text"
+            value={fullName}  // Sử dụng fullName ở đây
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">SĐT</label>
+          <input
+            type="text"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Địa chỉ</label>
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Role Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Vai trò</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="ADMIN">Admin</option>
+            <option value="MANAGE">Nhân viên</option>
+            <option value="USER">Người dùng</option>
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
         >
-          <option value="all">Tất cả sao</option>
-          {[5, 4, 3, 2, 1].map((star) => (
-            <option key={star} value={star}>{star} sao</option>
-          ))}
-        </select>
+          {initialData ? "Cập nhật" : "Thêm"} Admin
+        </button>
       </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full bg-white shadow rounded text-sm">
-          <thead className="bg-gray-100 text-left">
-            <tr>
-              <th className="p-3">Khách</th>
-              <th className="p-3">Sao</th>
-              <th className="p-3">Bình luận</th>
-              <th className="p-3">Ngày</th>
-              <th className="p-3 text-center">Hành động</th> {/* ✅ Thêm cột Hành động */}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((r) => (
-              <tr key={r.id} className="border-t hover:bg-gray-50">
-                <td className="p-3 font-medium">{r.user?.name || "Ẩn danh"}</td>
-                <td className="p-3">{r.rating} ⭐</td>
-                <td className="p-3 text-sm">{r.review}</td>
-                <td className="p-3">{new Date(r.createdAt).toLocaleDateString()}</td>
-                <td className="p-3 text-center">
-                  <button
-                    onClick={() => handleDelete(r.id)}
-                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    🗑️ Xóa
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    </form>
   );
 }

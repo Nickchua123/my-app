@@ -65,7 +65,7 @@ export default function AdminLayout() {
             }
           >📋 Đơn hàng
           </NavLink>
-          <NavLink
+          {/* <NavLink
             to="/admin/customers"
             className={({ isActive }) =>
               isActive
@@ -74,7 +74,7 @@ export default function AdminLayout() {
             }
           >
             👤 Khách hàng
-          </NavLink>
+          </NavLink> */}
           <NavLink
             to="/admin/reviews"
             className={({ isActive }) =>
@@ -85,7 +85,7 @@ export default function AdminLayout() {
           >
             ⭐ Đánh giá
           </NavLink>
-          <NavLink
+          {/* <NavLink
             to="/admin/users"
             className={({ isActive }) =>
               isActive
@@ -94,7 +94,7 @@ export default function AdminLayout() {
             }
           >
             👥 Người dùng
-          </NavLink>
+          </NavLink> */}
 
           <NavLink
             to="/admin/admins"
@@ -104,7 +104,7 @@ export default function AdminLayout() {
                 : "block p-2 hover:bg-orange-100 rounded"
             }
           >
-            👥 Quản lý admin
+            👥 Quản lý tài khoản
           </NavLink>
         </nav>
 

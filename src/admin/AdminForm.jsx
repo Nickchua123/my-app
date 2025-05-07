@@ -1,70 +1,165 @@
 import { useState, useEffect } from "react";
-import useCategories from "../hooks/useCategories";
+import axios from "../Config/axiosConfig";  // Import axios hoặc API service của bạn
 
-export default function ProductForm({ onSave, initialData, mode = "add" }) {
-  const data = initialData || {}; // Dữ liệu ban đầu
-  const [name, setName] = useState(data.name || "");
-  const [price, setPrice] = useState(data.price || "");
-  const [category, setCategory] = useState(data.category || "");
-  const [quantity, setQuantity] = useState(data.quantity || 0);
-  const [brand, setBrand] = useState(data.brand || "");
-  const [warranty, setWarranty] = useState(data.warranty || "");
-  const [description, setDescription] = useState(data.description || "");
-  const [status, setStatus] = useState(data.status || "available");
-  const [rating, setRating] = useState(data.rating || 5);
-  const [images, setImages] = useState(data.images || []);
-  const [errors, setErrors] = useState({});
+export default function AdminForm({ onSubmit, initialData = null }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");  // Sử dụng fullName thay vì name
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [role, setRole] = useState("admin"); // Default role is 'admin'
+  const [showPassword, setShowPassword] = useState(false);
 
-  const categories = useCategories();
+  useEffect(() => {
+    if (initialData) {
+      setEmail(initialData.email);
+      setFullName(initialData.fullName);  // Cập nhật với fullName
+      setPhone(initialData.phone);
+      setAddress(initialData.address);
+      setRole(initialData.role);
+    }
+  }, [initialData]);
 
-  const validate = () => {
-    const newErrors = {};
-    if (!name.trim()) newErrors.name = "Tên không được để trống.";
-    if (!price || Number(price) <= 0) newErrors.price = "Giá phải > 0.";
-    if (!category) newErrors.category = "Chọn danh mục.";
-    if (images.length === 0) newErrors.images = "Cần ít nhất 1 ảnh.";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
 
-    const productData = {
-      name,
-      price: Number(price),
-      category,
-      quantity: Number(quantity),
-      brand,
-      warranty,
-      description,
-      status,
-      rating: Number(rating),
-      images,
+    const userData = {
+      email,
+      password,
+      name: fullName,  // Change `fullName` to `name`
+      address,
+      phone,
+      // role, // Đảm bảo role được truyền đúng
     };
 
-    onSave(productData); // Gọi onSave để lưu sản phẩm
+    try {
+      let response;
+      //  console.log(userData);  // Kiểm tra dữ liệu gửi lên backend
+      console.log("Vai trò hiện tại ", role);
+      // Gửi yêu cầu tạo người dùng hoặc admin tùy theo vai trò
+      if (role === "ADMIN") {
+        response = await axios.post("http://localhost:8080/api/v1/createAdmin", userData, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+      }
+      if (role === "MANAGE") {
+        response = await axios.post("http://localhost:8080/api/v1/createManage", userData, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+      } else {
+        response = await axios.post("http://localhost:8080/api/v1/createUser", userData, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+      }
+
+      if (response.status === 201) {
+        // alert("✅ Tạo tài khoản thành công.");
+        onSubmit(userData); // Lý do tại sao dùng onSubmit, bạn có thể gọi callback nếu cần xử lý sau khi thành công
+      } else {
+        alert("❌ Có lỗi khi tạo tài khoản.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("❌ Đã có lỗi xảy ra khi tạo tài khoản.");
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4">
-      <h2 className="text-xl font-semibold">
-        {mode === "edit" ? "✏️ Chỉnh sửa sản phẩm" : "➕ Thêm sản phẩm mới"}
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto">
+      <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">
+        {initialData ? "Cập nhật" : "Thêm"} Tài Khoản Admin
       </h2>
 
-      {/* Các trường nhập liệu như tên, giá, mô tả, v.v... */}
-      <div>
-        <label>Tên sản phẩm</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
-        {errors.name && <p>{errors.name}</p>}
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+            placeholder="admin@example.com"
+            disabled={initialData ? true : false}
+          />
+        </div>
+
+        {/* Password Field */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+              placeholder="••••••••"
+            />
+            <span
+              className="absolute top-3 right-3 cursor-pointer text-gray-500"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {/* Heroicons */}
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Họ tên</label>
+          <input
+            type="text"
+            value={fullName}  // Sử dụng fullName ở đây
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">SĐT</label>
+          <input
+            type="text"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Địa chỉ</label>
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Role Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Vai trò</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="ADMIN">Admin</option>
+            <option value="MANAGE">Nhân viên</option>
+            <option value="USER">Người dùng</option>
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+        >
+          {initialData ? "Cập nhật" : "Thêm"} Admin
+        </button>
       </div>
-
-      {/* Các trường khác... */}
-
-      <button type="submit">
-        {mode === "edit" ? "💾 Lưu thay đổi" : "✅ Thêm sản phẩm"}
-      </button>
     </form>
   );
 }
