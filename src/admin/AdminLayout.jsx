@@ -33,7 +33,7 @@ export default function AdminLayout() {
                 : "block p-2 hover:bg-orange-100 rounded"
             }
           >
-            📊 Dashboard
+            📊 Bảng thống kê
           </NavLink>
 
           <NavLink
@@ -58,42 +58,42 @@ export default function AdminLayout() {
             🗂️ Quản lý danh mục
           </NavLink>
           <NavLink to="/admin/orders"
-           className={({ isActive }) =>
-            isActive
-              ? "block p-2 bg-orange-500 text-white rounded"
-              : "block p-2 hover:bg-orange-100 rounded"
-          }
+            className={({ isActive }) =>
+              isActive
+                ? "block p-2 bg-orange-500 text-white rounded"
+                : "block p-2 hover:bg-orange-100 rounded"
+            }
           >📋 Đơn hàng
           </NavLink>
           <NavLink
-          to="/admin/customers"
-           className={({ isActive }) =>
+            to="/admin/customers"
+            className={({ isActive }) =>
               isActive
-            ? "block p-2 bg-orange-500 text-white rounded"
-             : "block p-2 hover:bg-orange-100 rounded"
-            }
-         >
-           👤 Khách hàng
-          </NavLink>
-          <NavLink
-          to="/admin/reviews"
-            className={({ isActive }) =>
-             isActive
-              ? "block p-2 bg-orange-500 text-white rounded"
-               : "block p-2 hover:bg-orange-100 rounded"
+                ? "block p-2 bg-orange-500 text-white rounded"
+                : "block p-2 hover:bg-orange-100 rounded"
             }
           >
-           ⭐ Đánh giá
+            👤 Khách hàng
           </NavLink>
           <NavLink
-          to="/admin/users"
+            to="/admin/reviews"
             className={({ isActive }) =>
-             isActive
-              ? "block p-2 bg-orange-500 text-white rounded"
-              : "block p-2 hover:bg-orange-100 rounded"
-           }
+              isActive
+                ? "block p-2 bg-orange-500 text-white rounded"
+                : "block p-2 hover:bg-orange-100 rounded"
+            }
           >
-           👥 Người dùng
+            ⭐ Đánh giá
+          </NavLink>
+          <NavLink
+            to="/admin/users"
+            className={({ isActive }) =>
+              isActive
+                ? "block p-2 bg-orange-500 text-white rounded"
+                : "block p-2 hover:bg-orange-100 rounded"
+            }
+          >
+            👥 Người dùng
           </NavLink>
 
           <NavLink

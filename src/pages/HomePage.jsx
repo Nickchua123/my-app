@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ProductList from "../components/ProductList";
 import categoryMap from "../components/data/categories";
 import api from "../Config/axiosConfig";
+import newimg from "../assets/new.png";
 import BannerImg from "../assets/Banner.png";
 import Slider from "react-slick";
 import useCategories from "../hooks/useCategories";
@@ -34,6 +35,10 @@ export default function HomePage() {
     api.get("/products?size=1000")
       .then(res => {
         const all = res.data.data.result || res.data.data || [];
+        console.log("Toàn bộ dữ liệu trả về:", res.data);
+        // all.forEach((product, index) => {
+        //   console.log(`Ảnh của sản phẩm ${index + 1}:`, product.images);  // In từng ảnh
+        // });
         console.log("Tất cả sản phẩm lấy được:", all);
         // Random cho hàng mới về
         for (let i = all.length - 1; i > 0; i--) {
@@ -106,6 +111,12 @@ export default function HomePage() {
       { breakpoint: 640, settings: { slidesToShow: 1 } }
     ]
   };
+  const getImageUrl = (product) => {
+    const img = product.images?.[0];  // Lấy ảnh đầu tiên từ mảng images
+    return img
+      ? `http://localhost:8080/storage/Product-${product.id}/${img}`  // Đường dẫn tới ảnh
+      : "https://via.placeholder.com/300x200?text=No+Image";  // Ảnh mặc định nếu không có ảnh
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen w-full">
@@ -172,7 +183,7 @@ export default function HomePage() {
 
 
 
-            {/* Sản phẩm bán chạy
+            {/*  Sản phẩm bán chạy */}
             <section className="w-full flex flex-col items-center">
               <div className="flex justify-between items-center w-full mb-2">
                 <h2 className="text-xl font-bold">🔥 Bán chạy nhất</h2>
@@ -183,8 +194,8 @@ export default function HomePage() {
               <ProductList products={bestseller} horizontal />
             </section>
 
-            {/* Banner quảng cáo nhỏ */}
-            {/* <section className="my-6 w-full flex justify-center">
+            {/* Banner quảng cáo  */}
+            <section className="my-6 w-full flex justify-center">
               <Link to="/promotions">
                 <img
                   src={BannerImg}
@@ -192,28 +203,49 @@ export default function HomePage() {
                   className="rounded-xl shadow-lg mx-auto max-h-40 object-cover"
                 />
               </Link>
-            </section> */}
+            </section>
 
             {/* Hàng mới về - sản phẩm random */}
-            {/* <section className="my-12 w-full flex flex-col items-center">
-              <div className="flex justify-between items-center w-full mb-2">
+            <section className="my-12 w-full flex flex-col items-center">
+              <div className="flex justify-between items-center w-full mb-2 px-4">
                 <h2 className="text-xl font-bold">🌟 Hàng mới về</h2>
-                <span className="text-gray-500 text-sm">Xem tất cả</span>
+                <span className="text-gray-500 text-sm cursor-pointer hover:underline">
+                  Xem tất cả
+                </span>
               </div>
+
               <div className="max-w-5xl w-full mx-auto">
                 <Slider {...randomSettings}>
-                  {randomProducts.map(product => (
+                  {randomProducts.map((product) => (
                     <div key={product.id} className="p-2 flex justify-center">
-                      <div className="bg-white rounded-lg shadow flex flex-col items-center py-4 px-2 h-full">
+                      <div className="bg-white rounded-lg shadow flex flex-col items-center py-4 px-2 h-full transition-transform duration-300 transform hover:scale-105 hover:shadow-lg">
+
+                        {/* Ảnh sản phẩm */}
                         <img
-                          src={product.images?.[0] || "/no-image.png"}
+                          src={getImageUrl(product)}
                           alt={product.name}
                           className="h-28 w-full object-contain mb-2"
                         />
-                        <div className="font-semibold text-base text-center mb-1">{product.name}</div>
-                        <div className="text-orange-600 font-bold mb-2">{product.price?.toLocaleString()} đ</div>
+
+                        {/* Tên sản phẩm + icon NEW */}
+                        <div className="font-semibold text-base text-center mb-1 flex items-center justify-center">
+                          {product.name}
+
+                        </div>
+
+                        {/* Giá */}
+                        <div className="text-orange-600 font-bold mb-2 flex items-center justify-center">
+                          {product.price?.toLocaleString()} đ
+                          <img
+                            src={newimg}
+                            alt="new"
+                            className="h-5 w-5 object-contain ml-2"
+                          />
+                        </div>
+
+                        {/* Link chi tiết */}
                         <Link
-                          to={`/products/${product.id}`}
+                          to={`/product/${product.id}`}
                           className="text-sm text-blue-600 hover:underline"
                         >
                           Xem chi tiết
@@ -223,7 +255,8 @@ export default function HomePage() {
                   ))}
                 </Slider>
               </div>
-            </section>  */}
+            </section>
+
 
             {/* Sản phẩm theo hãng */}
             <section className="my-12 w-full flex flex-col items-center">

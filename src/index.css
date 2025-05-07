@@ -1,4 +1,8 @@
 @import "tailwindcss";
+/* src/assets/styles.css hoặc src/App.css */
+@import 'slick-carousel/slick/slick.css';
+@import 'slick-carousel/slick/slick-theme.css';
+
 
 .custom-scrollbar::-webkit-scrollbar {
     width: 6px;

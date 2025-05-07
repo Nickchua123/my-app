@@ -291,7 +291,7 @@ export default function ProductDetail() {
                             <div
                                 key={p.id}
                                 className="carousel-item flex flex-col items-center justify-center bg-white p-4 rounded-lg shadow-md mx-2 cursor-pointer"
-                                onClick={() => navigate(`/products/${p.id}`)}
+                                onClick={() => navigate(`/product/${p.id}`)}
                             >
                                 <img
                                     src={p.images?.[0] ? `http://localhost:8080/storage/Product-${p.id}/${p.images[0]}` : "/no-image.png"}
@@ -306,7 +306,7 @@ export default function ProductDetail() {
                                     className="mt-2 px-4 py-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition text-sm"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        navigate(`/products/${p.id}`);
+                                        navigate(`/product/${p.id}`);
                                     }}
                                 >
                                     Xem chi tiết
