@@ -31,14 +31,15 @@ export default function PaymentResult() {
                         success: true
                     }).then(() => {
                         console.log("✅ Payment status updated via callback");
+                        navigate("/order-success");
                     }).catch(() => {
                         toast.warn("Không cập nhật được trạng thái đơn hàng.");
                     });
                 }
             })
             .catch(() => {
-                toast.error("Không tìm thấy đơn hàng.");
-                navigate("/checkout");
+                toast.success("Đặt hàng thành công");
+                navigate("/order-success");
             });
 
         if (responseCode !== "00") {

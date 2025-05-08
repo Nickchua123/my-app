@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";  // Khai báo useNavigate
 import useCategories from "../hooks/useCategories";
 import axios from "axios";
 import {
@@ -14,17 +15,28 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-
 const COLORS = ["#FF8042", "#00C49F", "#FFBB28", "#8884D8", "#FF6666"];
 
 export default function AdminDashboard() {
   const categories = useCategories(); // lấy từ API /categories
   const [products, setProducts] = useState([]);
+  const navigate = useNavigate(); // Khai báo useNavigate để điều hướng trang
+
+  // Lấy role từ localStorage
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
-    axios.get("http://localhost:8080/api/v1/products")
+    if (role !== "ADMIN" && role !== "MANAGE") {
+      alert(`${role} không có quyền truy cập vào đây`);
+      navigate("/login");  // Điều hướng về trang login nếu không phải admin hoặc manage
+    }
+  }, [role, navigate]);  // Chỉ kiểm tra khi role thay đổi
+
+  useEffect(() => {
+    axios.get("http://localhost:8080/api/v1/products?size=250 ")
       .then((res) => {
         const data = res.data.data.result;
+        console.log(data);
         setProducts(data);
       })
       .catch((err) => {
@@ -33,6 +45,7 @@ export default function AdminDashboard() {
   }, []);
 
   const totalProducts = products.length;
+  console.log("Total ");
 
   const totalValue = products.reduce(
     (sum, p) => sum + (p.price * (p.stockQuantity || 0)),

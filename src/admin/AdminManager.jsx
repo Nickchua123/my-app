@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import api from "../Config/axiosConfig";  // Import axios instance đã cấu hình
+import { useNavigate } from "react-router-dom";  // Để điều hướng trang
+import api from "../Config/axiosConfig"; // Import axios instance đã cấu hình
 import AdminForm from "./AdminForm";
 
 export default function AdminManager() {
@@ -11,25 +12,36 @@ export default function AdminManager() {
   const [totalPages, setTotalPages] = useState(0); // Tổng số trang
   const [totalItems, setTotalItems] = useState(0); // Tổng số items
   const current = localStorage.getItem("currentAdmin");
+  const role = localStorage.getItem("role");  // Lấy role từ localStorage
+  const navigate = useNavigate();  // Điều hướng trang
+
+  // Kiểm tra quyền người dùng (Admin hay không)
+  useEffect(() => {
+    if (role !== "ADMIN") {
+      alert("Bạn không có quyền truy cập vào đây");
+      navigate("/admin");  // Điều hướng về trang dashboard nếu không phải admin
+    }
+  }, [role, navigate]);  // Chỉ kiểm tra khi role thay đổi
 
   useEffect(() => {
-    // Gọi API để lấy dữ liệu với phân trang
-    api.get(`/users?page=${currentPage - 1}&size=2`)  // Gửi request với trang hiện tại và số lượng item mỗi trang
-      .then((response) => {
-        setAdmins(response.data.data.result); // Dữ liệu admin
-        // console.log(response.data.data.result);
-        setTotalPages(response.data.data.meta.pages); // Số trang
-        setTotalItems(response.data.data.totalItems); // Tổng số item
-      })
-      .catch((error) => {
-        console.error("Lỗi khi lấy dữ liệu từ API:", error);
-      });
-  }, [currentPage]);  // Gọi lại mỗi khi trang thay đổi
+    if (role === "ADMIN") {
+      // Gọi API để lấy dữ liệu với phân trang chỉ khi là Admin
+      api.get(`/users?page=${currentPage - 1}&size=10`)  // Gửi request với trang hiện tại và số lượng item mỗi trang
+        .then((response) => {
+          setAdmins(response.data.data.result);  // Dữ liệu admin
+          setTotalPages(response.data.data.meta.pages);  // Số trang
+          setTotalItems(response.data.data.totalItems);  // Tổng số item
+        })
+        .catch((error) => {
+          console.error("Lỗi khi lấy dữ liệu từ API:", error);
+        });
+    }
+  }, [currentPage, role]);  // Gọi lại mỗi khi trang thay đổi hoặc role thay đổi
 
-  console.log(admins);
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
+
   const handleAddOrUpdate = async (adminData) => {
     const isEditing = !!editData;
     let updated;
@@ -51,39 +63,35 @@ export default function AdminManager() {
       setShowForm(false);
       setEditData(null);
       setCurrentPage(1);  // Quay lại trang đầu khi thêm admin mới
-
-      // Không cần gọi api.post() ở đây nữa, đã thực hiện trong AdminForm.jsx
-
     } catch (error) {
       console.error(error);
       alert("❌ Đã có lỗi xảy ra khi tạo tài khoản.");
     }
   };
-  const handleDelete = (id) => {
-    console.log("ID cần xóa: ", id);
 
+  const handleDelete = (id) => {
     if (id === current) {
       alert("⚠️ Không thể xoá chính tài khoản đang đăng nhập.");
       return;
     }
 
     if (window.confirm("Bạn có chắc chắn muốn xoá tài khoản này?")) {
-      // Gửi yêu cầu xóa admin từ backend bằng ID
       api.delete(`/users/${id}`)  // Gửi yêu cầu xóa admin từ backend
         .then(() => {
-          // Sau khi xóa, gọi lại API để lấy lại danh sách admins mới
-          api.get(`/users?page=${currentPage - 1}&size=2`) // Gọi lại API với trang hiện tại
-            .then((response) => {
-              setAdmins(response.data.data.result); // Cập nhật lại danh sách admin
-              setTotalPages(response.data.data.meta.pages); // Cập nhật số trang
-              setTotalItems(response.data.data.totalItems); // Cập nhật tổng số items
+          const updatedAdmins = admins.filter((admin) => admin.id !== id);
+          setAdmins(updatedAdmins); // Cập nhật danh sách admins mới
 
-              alert("🗑️ Đã xoá thành công.");
-            })
-            .catch((error) => {
-              console.error("Lỗi khi lấy lại dữ liệu sau khi xóa:", error);
-              alert("❌ Có lỗi khi lấy lại dữ liệu sau khi xóa");
-            });
+          const newTotalItems = updatedAdmins.length;
+          const newTotalPages = Math.ceil(newTotalItems / 5); // Giả sử mỗi trang có 5 items
+
+          if (currentPage > newTotalPages) {
+            setCurrentPage(newTotalPages); // Quay lại trang cuối hợp lệ
+          }
+
+          setTotalItems(newTotalItems);
+          setTotalPages(newTotalPages);
+
+          alert("🗑️ Đã xoá thành công.");
         })
         .catch((error) => {
           console.error("Lỗi khi xóa:", error);
@@ -91,9 +99,6 @@ export default function AdminManager() {
         });
     }
   };
-
-
-
 
   // Lọc admin theo vai trò
   const filteredAdmins =

@@ -55,7 +55,7 @@ export function UserProvider({ children }) {
   // Đăng ký
   const register = async (data) => {
     try {
-      await api.post("/create", data);
+      await api.post("/createUser", data);
       return true;
     } catch (error) {
       console.error("Registration failed:", error);

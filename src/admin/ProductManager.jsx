@@ -48,7 +48,7 @@ export default function ProductManager() {
     return new File([blob], `${filename}.${ext}`, { type: blob.type });
   };
 
-  // ✅ NEW: Gửi FormData chứa JSON + ảnh
+  //  NEW: Gửi FormData chứa JSON + ảnh
   const handleSave = async (productData) => {
     try {
       const formData = new FormData();
@@ -85,16 +85,18 @@ export default function ProductManager() {
       console.log("📦 JSON gửi lên:", JSON.stringify(productCopy));
       console.log("🖼️ Gửi ảnh mới?", base64Images.length > 0);
 
-      // Gửi request
       if (editData) {
-        await axios.post("http://localhost:8080/api/v1/products/images", formData, {
+        // Dùng PUT cho cập nhật
+        await axios.put(`http://localhost:8080/api/v1/products/${editData.id}/images`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        await axios.post("http://localhost:8080/api/v1/img", formData, {
+        // Dùng POST cho thêm mới
+        await axios.post("http://localhost:8080/api/v1/products/img", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
+
 
       await fetchProducts(currentPage);
       setShowForm(false);

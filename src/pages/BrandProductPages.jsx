@@ -39,7 +39,8 @@ export default function BrandProductPage() {
     });
     const [filter, setFilter] = useState(filterDraft);
 
-    function buildFilter(currentFilter) {
+    // Chức năng build filter cho API query
+    const buildFilter = (currentFilter) => {
         let filters = [];
         if (currentFilter.name) filters.push(`name=*"${currentFilter.name}"`);
         if (currentFilter.priceRange[0] > 0) filters.push(`price>=${currentFilter.priceRange[0]}`);
@@ -57,27 +58,32 @@ export default function BrandProductPage() {
             );
         }
         return filters.join(" and ");
-    }
+    };
 
+
+    // Fetch products với filter và phân trang
     useEffect(() => {
         let query = `?page=${page}&size=8`;
-        const filterStr = buildFilter(filter); // 💥 Pass đúng filter vào đây
+        const filterStr = buildFilter(filter);
         if (filterStr) query += `&filter=${encodeURIComponent(filterStr)}`;
         if (filter.sort) query += `&sort=${filter.sort}`;
 
         api.get(`/products/brand/${brandName}${query}`).then(res => {
+            console.log("Dữ liệu từ API: ", res.data);
             setProducts(res.data.data?.result || []);
             setMeta(res.data.data?.meta || {});
         });
+
+
     }, [brandName, page, filter]);
 
-    // Nút tìm kiếm
+    // Hàm tìm kiếm
     const handleSearch = () => {
         setFilter({ ...filterDraft });
         setPage(0);
     };
 
-    // Reset filter
+    // Hàm reset filter
     const handleReset = () => {
         const resetDraft = {
             name: "",
@@ -100,7 +106,6 @@ export default function BrandProductPage() {
     const inputStyle = "border px-3 py-2 rounded w-full mb-3 shadow-sm focus:ring-2 focus:ring-orange-400 outline-none";
     const selectStyle = "border px-3 py-2 rounded w-full mb-3 shadow-sm focus:ring-2 focus:ring-orange-400 outline-none";
 
-
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
             {/* SIDEBAR FILTER TRÁI */}
@@ -108,6 +113,7 @@ export default function BrandProductPage() {
                 <div className="bg-white rounded-2xl shadow-xl p-7 sticky top-20 space-y-6 border border-orange-100">
                     <h3 className="text-2xl font-extrabold mb-4 text-orange-600 tracking-tight">Lọc nâng cao</h3>
 
+                    {/* Các bộ lọc */}
                     <div>
                         <label className={labelStyle}>Tên sản phẩm:</label>
                         <input
@@ -117,6 +123,8 @@ export default function BrandProductPage() {
                             onChange={e => setFilterDraft(f => ({ ...f, name: e.target.value }))}
                         />
                     </div>
+
+                    {/* Khoảng giá */}
                     <div>
                         <label className={labelStyle}>Khoảng giá (VNĐ):</label>
                         <div className="flex flex-col items-center mb-3">
@@ -128,10 +136,7 @@ export default function BrandProductPage() {
                                 value={filterDraft.priceRange}
                                 onChange={val => setFilterDraft(f => ({ ...f, priceRange: val }))}
                                 railStyle={{ backgroundColor: "#fee2b3", height: 6 }}
-                                handleStyle={[
-                                    { borderColor: "#f97316", height: 24, width: 24 },
-                                    { borderColor: "#f97316", height: 24, width: 24 },
-                                ]}
+                                handleStyle={[{ borderColor: "#f97316", height: 24, width: 24 }, { borderColor: "#f97316", height: 24, width: 24 }]}
                                 trackStyle={[{ backgroundColor: "#f97316", height: 8 }]}
                             />
                             <div className="flex justify-between w-full text-xs mt-1 px-1 font-medium">
@@ -140,6 +145,8 @@ export default function BrandProductPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Các bộ lọc còn lại */}
                     <div>
                         <label className={labelStyle}>CPU:</label>
                         <select
@@ -151,6 +158,7 @@ export default function BrandProductPage() {
                             {cpuOptions.map(cpu => <option key={cpu} value={cpu}>{cpu}</option>)}
                         </select>
                     </div>
+
                     <div>
                         <label className={labelStyle}>RAM (GB):</label>
                         <select
@@ -162,56 +170,11 @@ export default function BrandProductPage() {
                             {ramOptions.map(ram => <option key={ram} value={ram}>{ram} GB</option>)}
                         </select>
                     </div>
-                    <div>
-                        <label className={labelStyle}>Ổ cứng:</label>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                            {storageTypes.map(type => (
-                                <label key={type} className="inline-flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        className="mr-1 accent-orange-500"
-                                        value={type}
-                                        checked={filterDraft.selectedStorageTypes.includes(type)}
-                                        onChange={e => {
-                                            setFilterDraft(f => ({
-                                                ...f,
-                                                selectedStorageTypes: e.target.checked
-                                                    ? [...f.selectedStorageTypes, type]
-                                                    : f.selectedStorageTypes.filter(x => x !== type)
-                                            }));
-                                        }}
-                                    />
-                                    {type}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                    <div>
-                        <label className={labelStyle}>Màn hình (inch):</label>
-                        <select
-                            className={selectStyle}
-                            value={filterDraft.selectedScreen}
-                            onChange={e => setFilterDraft(f => ({ ...f, selectedScreen: e.target.value }))}
-                        >
-                            <option value="">Tất cả</option>
-                            {screenSizes.map(size => <option key={size} value={size}>{size}"</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label className={labelStyle}>Card đồ họa:</label>
-                        <select
-                            className={selectStyle}
-                            value={filterDraft.selectedGpu}
-                            onChange={e => setFilterDraft(f => ({ ...f, selectedGpu: e.target.value }))}
-                        >
-                            <option value="">Tất cả</option>
-                            {gpuOptions.map(gpu => <option key={gpu} value={gpu}>{gpu}</option>)}
-                        </select>
-                    </div>
+
                     <div>
                         <label className={labelStyle}>Tình trạng:</label>
                         <select
-                            className={selectStyle.replace("mb-3", "")}
+                            className={selectStyle}
                             value={filterDraft.selectedStatus}
                             onChange={e => setFilterDraft(f => ({ ...f, selectedStatus: e.target.value }))}
                         >
@@ -219,18 +182,7 @@ export default function BrandProductPage() {
                             {statusOptions.map(st => <option key={st} value={st}>{st}</option>)}
                         </select>
                     </div>
-                    <div>
-                        <label className={labelStyle}>Sắp xếp:</label>
-                        <select
-                            className={selectStyle.replace("mb-3", "")}
-                            value={filterDraft.sort}
-                            onChange={e => setFilterDraft(f => ({ ...f, sort: e.target.value }))}
-                        >
-                            {sortOptions.map(op => (
-                                <option key={op.value} value={op.value}>{op.label}</option>
-                            ))}
-                        </select>
-                    </div>
+
                     {/* Button tìm kiếm và reset */}
                     <button
                         className="w-full bg-orange-500 text-white py-2 rounded-lg font-bold mt-3 mb-1 hover:bg-orange-600 transition duration-200 shadow-lg"

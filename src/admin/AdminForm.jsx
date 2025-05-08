@@ -132,7 +132,7 @@ export default function AdminForm({ onSubmit, initialData = null }) {
           />
         </div>
 
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700">SĐT</label>
           <input
             type="text"
@@ -140,7 +140,7 @@ export default function AdminForm({ onSubmit, initialData = null }) {
             onChange={(e) => setPhone(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
           />
-        </div>
+        </div> */}
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Địa chỉ</label>

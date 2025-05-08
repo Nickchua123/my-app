@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import api from "../Config/axiosConfig";  // Import axios để gọi API
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -40,6 +41,14 @@ export default function LoginForm() {
     const success = await login(email, password, role); // Thêm role vào login
     if (success) {
       alert("🎉 Đăng nhập thành công");
+
+      // Lưu vai trò vào localStorage sau khi đăng nhập thành công
+      // localStorage.setItem("role", role);  // Lưu vai trò vào localStorage
+      // localStorage.setItem("email", email); // Bạn có thể lưu email hoặc các thông tin khác nếu cần
+
+      // Gọi hàm fetchUser để lấy role.name từ API
+      fetchUser(email);
+
       // Chuyển hướng đến trang Admin nếu role là "ADMIN", hoặc trang User nếu role là "USER"
       if (role === "ADMIN") {
         navigate("/admin"); // Chuyển hướng đến trang admin
@@ -48,6 +57,22 @@ export default function LoginForm() {
       }
     } else {
       alert("❌ Email hoặc mật khẩu không đúng");
+    }
+  };
+
+  // Hàm fetchUser để lấy thông tin người dùng từ API
+  const fetchUser = async (email) => {
+    try {
+      const response = await api.get(`/${email}`);
+      console.log("Response", response.data.data.role.name);  // Gửi yêu cầu GET để lấy thông tin người dùng
+      const userRole = response.data.data.role.name;  // Giả sử API trả về thông tin người dùng với role.name
+
+      // Lưu role vào localStorage
+      localStorage.setItem("role", userRole);
+
+      console.log("Role của người dùng: ", userRole);  // In ra role của người dùng
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin người dùng:", error);
     }
   };
 

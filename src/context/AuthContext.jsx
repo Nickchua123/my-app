@@ -42,6 +42,7 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem("isAdmin");
     localStorage.removeItem("currentAdmin");
+    localStorage.removeItem("role");
     setIsAdmin(false);
   };
 
