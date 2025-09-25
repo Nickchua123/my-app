@@ -109,13 +109,13 @@ export default function MyOrdersPage() {
         formData.append("file", blob, fileName);
         formData.append("orderId", selectedOrder.id);
 
-        try {
-            await api.post("/orders/send-invoice", formData);
-            alert("📧 Hoá đơn đã được gửi tới email của bạn!");
-        } catch (err) {
-            console.error("Lỗi gửi email:", err);
-            alert("Gửi email thất bại. Vui lòng thử lại sau.");
-        }
+        // try {
+        //     await api.post("/orders/send-invoice", formData);
+        //     alert("📧 Hoá đơn đã được gửi tới email của bạn!");
+        // } catch (err) {
+        //     console.error("Lỗi gửi email:", err);
+        //     alert("Gửi email thất bại. Vui lòng thử lại sau.");
+        // }
 
         // Khôi phục style
         if (printButton) printButton.style.display = "block";

@@ -1,155 +1,167 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { useUser } from "../context/UserContext";
-import api from "../Config/axiosConfig";  // Import axios để gọi API
+import api from "../Config/axiosConfig";
+import { FiLogIn } from "react-icons/fi";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("USER"); // Default role is USER
-  const [showPassword, setShowPassword] = useState(false); // For toggling password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useUser();
   const navigate = useNavigate();
-  const [errors, setErrors] = useState({ email: "", password: "", role: "" });
+  const [errors, setErrors] = useState({ email: "", password: "" });
 
-  // Hàm xử lý validation
   const validateForm = () => {
-    let formErrors = { email: "", password: "", role: "" };
-
-    // Kiểm tra email có đúng định dạng không
+    let formErrors = { email: "", password: "" };
     const emailRegex = /\S+@\S+\.\S+/;
+
     if (!email) formErrors.email = "Email không được để trống.";
     else if (!emailRegex.test(email)) formErrors.email = "Email không hợp lệ.";
 
-    // Kiểm tra mật khẩu
     if (!password) formErrors.password = "Mật khẩu không được để trống.";
-    else if (password.length < 6) formErrors.password = "Mật khẩu phải có ít nhất 6 ký tự.";
-
-    // Kiểm tra role
-    if (!role) formErrors.role = "Vui lòng chọn vai trò.";
+    else if (password.length < 6)
+      formErrors.password = "Mật khẩu phải có ít nhất 6 ký tự.";
 
     setErrors(formErrors);
     return !Object.values(formErrors).some((error) => error);
   };
 
-  // Hàm xử lý đăng nhập
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
 
-    if (!validateForm()) return;  // Only proceed if the form is valid
-
-    const success = await login(email, password, role); // Thêm role vào login
+    const success = await login(email, password, "USER");
     if (success) {
       alert("🎉 Đăng nhập thành công");
-
-      // Lưu vai trò vào localStorage sau khi đăng nhập thành công
-      // localStorage.setItem("role", role);  // Lưu vai trò vào localStorage
-      // localStorage.setItem("email", email); // Bạn có thể lưu email hoặc các thông tin khác nếu cần
-
-      // Gọi hàm fetchUser để lấy role.name từ API
       fetchUser(email);
-
-      // Chuyển hướng đến trang Admin nếu role là "ADMIN", hoặc trang User nếu role là "USER"
-      if (role === "ADMIN") {
-        navigate("/admin"); // Chuyển hướng đến trang admin
-      } else {
-        navigate("/"); // Chuyển hướng đến trang user
-      }
+      navigate("/");
     } else {
       alert("❌ Email hoặc mật khẩu không đúng");
     }
   };
 
-  // Hàm fetchUser để lấy thông tin người dùng từ API
   const fetchUser = async (email) => {
     try {
       const response = await api.get(`/${email}`);
-      console.log("Response", response.data.data.role.name);  // Gửi yêu cầu GET để lấy thông tin người dùng
-      const userRole = response.data.data.role.name;  // Giả sử API trả về thông tin người dùng với role.name
-
-      // Lưu role vào localStorage
+      const userRole = response.data.data.role.name;
       localStorage.setItem("role", userRole);
-
-      console.log("Role của người dùng: ", userRole);  // In ra role của người dùng
     } catch (error) {
       console.error("Lỗi khi lấy thông tin người dùng:", error);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-200">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md space-y-6"
-      >
-        <h2 className="text-3xl font-bold text-center text-blue-700">Đăng nhập</h2>
-
-        {/* Input Email */}
-        <div className="space-y-1">
-          <label className="block text-sm font-semibold text-gray-600">Email</label>
-          <input
-            type="email"
-            className={`w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-400 ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          {errors.email && <span className="text-red-500 text-sm">{errors.email}</span>}
-        </div>
-
-        {/* Input Password */}
-        <div className="space-y-1">
-          <label className="block text-sm font-semibold text-gray-600">Mật khẩu</label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              className={`w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-400 ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <span
-              className="absolute top-3 right-3 cursor-pointer"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? "👁️" : "👁️"}
-            </span>
-          </div>
-          {errors.password && <span className="text-red-500 text-sm">{errors.password}</span>}
-        </div>
-
-        {/* Role Selection */}
-        <div className="space-y-1">
-          <label className="block text-sm font-semibold text-gray-600">Vai trò</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className={`w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-400 ${errors.role ? 'border-red-500' : 'border-gray-300'}`}
-          >
-            <option value="USER">User</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-          {errors.role && <span className="text-red-500 text-sm">{errors.role}</span>}
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition duration-300"
-        >
-          Đăng nhập
-        </button>
-
-        {/* Register Link */}
-        <p className="text-center text-sm text-gray-600">
-          Chưa có tài khoản?{" "}
-          <a href="/register" className="text-blue-600 font-semibold hover:underline">
-            Đăng ký ngay
-          </a>
+    <div className=" min-h-screen flex flex-col items-center justify-center bg-gray-300 from-indigo-100 via-white to-blue-100 ">
+      {/* Breadcrumb */}
+      <div className="w-full max-w-5xl mb-6">
+        <p className="text-gray-500 text-sm">
+          Home <span className="mx-1">›</span> Login
         </p>
-      </form>
+        <h1 className="text-3xl font-extrabold mt-2 text-gray-800">
+          Customer Login
+        </h1>
+      </div>
+
+      {/* Main Card */}
+      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 bg-white rounded-3xl shadow-2xl overflow-hidden">
+        {/* Left: Form */}
+        <form
+          onSubmit={handleLogin}
+          className="p-10 space-y-6 border-r border-gray-200"
+        >
+          <h2 className="text-2xl font-bold text-gray-800">
+            Registered Customers
+          </h2>
+          <p className="text-sm text-gray-500">
+            If you have an account, please log in.
+          </p>
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Email <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              className={`w-full mt-1 border p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${errors.email ? "border-red-500" : "border-gray-300"
+                }`}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative mt-1">
+              <input
+                type={showPassword ? "text" : "password"}
+                className={`w-full border p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${errors.password ? "border-red-500" : "border-gray-300"
+                  }`}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+              <span
+                className="absolute top-3 right-3 cursor-pointer text-gray-500 hover:text-gray-700"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+              </span>
+            </div>
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition"
+          >
+            <FiLogIn size={20} /> Sign In
+          </button>
+
+          {/* Forgot password */}
+          <div className="w-full flex justify-center ">
+            <Link
+              to="#"
+              className="text-sm text-black-600 hover:text-black-700 underline transition"
+            >
+              Forgot your password?
+            </Link>
+          </div>
+        </form>
+
+        {/* Right: New Customer */}
+        <div className="p-10 flex flex-col justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            New Customer?
+          </h2>
+          <p className="text-gray-600 text-sm mb-4">
+            Creating an account has many benefits:
+          </p>
+          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 mb-6">
+            <li>Check out faster</li>
+            <li>Save multiple addresses</li>
+            <li>Track orders and more</li>
+          </ul>
+          <Link
+            to="/register"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition text-center"
+          >
+            Create An Account
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

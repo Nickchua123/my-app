@@ -1,420 +1,306 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import ProductList from "../components/ProductList";
-import categoryMap from "../components/data/categories";
-import api from "../Config/axiosConfig";
-import newimg from "../assets/new.png";
-import BannerImg from "../assets/Banner.png";
+import { Link } from "react-router-dom";
 import Slider from "react-slick";
-import useCategories from "../hooks/useCategories";
+import api from "../Config/axiosConfig";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
+// Banner ảnh
+import BannerImg from "../assets/Banner.png";
+import BannerImg2 from "../assets/Banner2.png";
+import BannerImg3 from "../assets/Banner3.png";
 
+// Logo hãng
+import LogoMSI from "../assets/LogoMSI.png";
+import LogoDesktops from "../assets/LogoDesktops.png";
+import LogoGaming from "../assets/LogoGaming.png";
 
-// Mảng ảnh chương trình khuyến mãi (ví dụ dùng BannerImg)
-const promoImages = [
-  BannerImg, BannerImg, BannerImg, BannerImg, BannerImg,
-];
+// Component tái sử dụng
+import BrandSection from "../components/BrandSection";
+
+// Logo đối tác
+import LogoMSI1 from "../assets/msi.png";
+import LogoRazer from "../assets/razer.png";
+import LogoThermaltake from "../assets/thermaltake.png";
+import LogoAdata from "../assets/adata.png";
+import LogoHP from "../assets/hp.png";
+import LogoGigabyte from "../assets/gigabyte.png";
+import LogoRoccat from "../assets/roccat.png";
+
+const promoImages = [BannerImg, BannerImg2, BannerImg3];
+
+// Nút custom cho slider
+const NextArrow = ({ onClick }) => (
+  <button
+    className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow hover:bg-gray-100"
+    onClick={onClick}
+  >
+    <FaChevronRight className="text-gray-700" />
+  </button>
+);
+
+const PrevArrow = ({ onClick }) => (
+  <button
+    className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow hover:bg-gray-100"
+    onClick={onClick}
+  >
+    <FaChevronLeft className="text-gray-700" />
+  </button>
+);
 
 export default function HomePage() {
-
-
-
-  const [bestseller, setBestseller] = useState([]);
-  const [randomProducts, setRandomProducts] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [brandProducts, setBrandProducts] = useState([]);
-  const [allBrandProducts, setAllBrandProducts] = useState([]);
-  const [selectedBrand, setSelectedBrand] = useState("");
-  const navigate = useNavigate();
-  const categories = useCategories();
-  const [showAllCategories, setShowAllCategories] = useState(false);
-  const displayedCategories = showAllCategories ? categories : categories.slice(0, 4);
-
+  const [sanPhamMoi, setSanPhamMoi] = useState([]);
+  const [buildPC, setBuildPC] = useState([]);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    api.get("/products?size=1000")
-      .then(res => {
-        const all = res.data.data.result || res.data.data || [];
-        console.log("Toàn bộ dữ liệu trả về:", res.data);
-        // all.forEach((product, index) => {
-        //   console.log(`Ảnh của sản phẩm ${index + 1}:`, product.images);  // In từng ảnh
-        // });
-        console.log("Tất cả sản phẩm lấy được:", all);
-        // Random cho hàng mới về
-        for (let i = all.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [all[i], all[j]] = [all[j], all[i]];
-        }
-        setRandomProducts(all.slice(0, 10));
-        // Lấy danh sách hãng
-        const uniqueBrands = Array.from(new Set(all.map(p => p.brand).filter(Boolean)));
-        setBrands(uniqueBrands);
-        console.log("Unique brands:", uniqueBrands);
-        if (uniqueBrands.length > 0) {
-          setSelectedBrand(uniqueBrands[0]);
-          const filtered = all.filter(p => p.brand === uniqueBrands[0]);
-          setAllBrandProducts(filtered);
-          setBrandProducts(filtered.slice(0, 8));
-
-        }
-      });
-    api.get("/products?sort=sold,desc&size=10").then(res =>
-      setBestseller(res.data.data?.result || res.data.data || [])
+    api.get("/products?sort=createdAt,desc&size=8").then((res) =>
+      setSanPhamMoi(res.data.data?.result || res.data.data || [])
     );
+
+    api.get("/products?size=1000").then((res) => {
+      const all = res.data.data?.result || res.data.data || [];
+      setProducts(all);
+      setBuildPC(all.filter((p) => p.category === "build").slice(0, 5));
+    });
   }, []);
 
-  //  render Brand test truốc
-
-
-  // Render ra props brand
-  const handleBrandChange = (brand) => {
-    setSelectedBrand(brand); // Set up cho selectBrand
-    api.get("/products?size=1000")
-      .then(res => {
-        const all = res.data.data?.result || res.data.data || [];
-        const filtered = all.filter(p => p.brand === brand);
-        setAllBrandProducts(filtered);
-        setBrandProducts(filtered.slice(0, 8));
-        console.log(filtered);
-      });
-  };
-
-  // Slider  cho các slideshow
-  const promoSettings = {
-    dots: true,
-    infinite: true,
-    speed: 600,
-    slidesToShow: 3,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 2000,
-    arrows: true,
-    pauseOnHover: true,
-    responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 2 } },
-      { breakpoint: 640, settings: { slidesToShow: 1 } }
-    ]
-  };
-  const randomSettings = {
-    dots: true,
-    infinite: true,
-    speed: 600,
-    slidesToShow: 4,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 2200,
-    arrows: true,
-    pauseOnHover: true,
-    responsive: [
-      { breakpoint: 1280, settings: { slidesToShow: 3 } },
-      { breakpoint: 900, settings: { slidesToShow: 2 } },
-      { breakpoint: 640, settings: { slidesToShow: 1 } }
-    ]
-  };
   const getImageUrl = (product) => {
-    const img = product.images?.[0];  // Lấy ảnh đầu tiên từ mảng images
+    const img = product.images?.[0];
     return img
-      ? `http://localhost:8080/storage/Product-${product.id}/${img}`  // Đường dẫn tới ảnh
-      : "https://via.placeholder.com/300x200?text=No+Image";  // Ảnh mặc định nếu không có ảnh
+      ? `http://localhost:8080/storage/Product-${product.id}/${img}`
+      : "https://via.placeholder.com/300x200?text=No+Image";
+  };
+
+  const bannerSettings = {
+    dots: true,
+    infinite: true,
+    autoplay: true,
+    autoplaySpeed: 4000,
+    arrows: true,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+  };
+
+  const settings = {
+    dots: false,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 5,
+    slidesToScroll: 2,
+    nextArrow: <NextArrow />,
+    prevArrow: <PrevArrow />,
+    responsive: [
+      { breakpoint: 1280, settings: { slidesToShow: 4 } },
+      { breakpoint: 1024, settings: { slidesToShow: 3 } },
+      { breakpoint: 640, settings: { slidesToShow: 2 } },
+    ],
   };
 
   return (
     <div className="bg-gray-50 min-h-screen w-full">
-      <div className="max-w-7xl mx-auto px-4 flex flex-col items-center">
-        {/* Hero/Banner */}
-        <section className="w-full flex justify-center">
-          <div className="relative bg-gradient-to-r from-orange-100 via-white to-orange-50 rounded-xl shadow-lg mt-6 mb-10 p-8 flex flex-col md:flex-row items-center justify-between w-full">
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-5xl font-bold text-orange-600 mb-4">
-                Khám phá công nghệ <span className="text-orange-500">cùng COMPU</span>
-              </h1>
-              <p className="text-lg text-gray-700 mb-6">
-                Giảm giá sốc, bảo hành tận nơi, dịch vụ 5★!
-              </p>
-              <Link
-                to="/category/laptop"
-                className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-lg"
+      <div className="max-w-[1600px] mx-auto px-4">
+        {/* Banner */}
+        <section className="mb-12">
+          <Slider {...bannerSettings}>
+            {promoImages.map((src, i) => (
+              <div key={i}>
+                <img
+                  src={src}
+                  alt={`Promo ${i + 1}`}
+                  className="w-full h-[480px] object-cover rounded-lg shadow-lg"
+                />
+              </div>
+            ))}
+          </Slider>
+        </section>
+
+        {/* New Products */}
+        <section className="mb-16 relative">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold uppercase tracking-wide">
+              Sản phẩm mới
+            </h2>
+            <Link
+              to="/category/new"
+              className="text-blue-600 hover:underline font-medium"
+            >
+              Xem tất cả →
+            </Link>
+          </div>
+
+          <Slider {...settings}>
+            {sanPhamMoi.map((p) => (
+              <div key={p.id} className="p-2">
+                <div className="bg-white p-4 rounded-lg shadow hover:shadow-xl transition transform hover:scale-105 flex flex-col">
+                  <img
+                    src={getImageUrl(p)}
+                    alt={p.name}
+                    className="h-36 object-contain mb-3 mx-auto"
+                  />
+                  <h3 className="font-medium text-sm line-clamp-2 text-center">
+                    {p.name}
+                  </h3>
+                  <div className="flex justify-center items-center text-yellow-400 text-sm mb-1">
+                    {"★".repeat(5)}
+                    <span className="text-gray-500 text-xs ml-1">
+                      (4 reviews)
+                    </span>
+                  </div>
+                  <p className="text-black font-bold mt-1 text-center">
+                    {p.price?.toLocaleString()} đ
+                  </p>
+                  {p.stockQuantity > 0 ? (
+                    <p className="text-green-600 text-sm font-medium text-center mt-1">
+                      Còn hàng
+                    </p>
+                  ) : (
+                    <p className="text-red-600 text-sm font-medium text-center mt-1">
+                      Hết hàng
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </Slider>
+        </section>
+
+        {/* Custom Builds */}
+        <section className="mb-16 grid grid-cols-1 lg:grid-cols-6 gap-6">
+          <div className="col-span-1 bg-black rounded-lg flex flex-col items-center justify-center p-6">
+            <img
+              src={LogoDesktops}
+              alt="Custom Builds"
+              className="mb-4 h-20 object-contain"
+            />
+            <h3 className="text-white text-xl font-bold mb-2">Custom Builds</h3>
+            <Link to="/category/build" className="text-blue-400 hover:underline">
+              Xem tất cả →
+            </Link>
+          </div>
+
+          <div className="col-span-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {buildPC.map((p) => (
+              <div
+                key={p.id}
+                className="bg-white p-4 rounded-lg shadow hover:shadow-xl transition transform hover:scale-105 flex flex-col"
               >
-                Mua ngay
-              </Link>
-            </div>
-            <img src={BannerImg} className="h-44 md:h-60 mx-auto" alt="Banner Sản phẩm" />
+                <img
+                  src={getImageUrl(p)}
+                  alt={p.name}
+                  className="h-40 object-contain mb-3"
+                />
+                <h3 className="font-semibold text-sm line-clamp-2 text-center">
+                  {p.name}
+                </h3>
+                <p className="text-black font-bold mt-2 text-center">
+                  {p.price?.toLocaleString()} đ
+                </p>
+              </div>
+            ))}
           </div>
         </section>
 
-        <div className="w-full flex flex-col lg:flex-row gap-8 justify-center items-start">
-          {/* Main content */}
-          <div className="flex-1 space-y-12 flex flex-col items-center">
-            {/* Danh mục lớn */}
-            {/* <section className="w-full flex flex-col items-center">
-              <h2 className="text-2xl font-bold mb-4 text-center">Danh mục nổi bật</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full justify-center">
-                {displayedCategories.map(category => (
-                  <Link
-                    key={category.id}
-                    to={`/category/${category.id}`}
-                    className="bg-white border rounded-xl p-2 md:p-3 shadow hover:shadow-md text-center hover:bg-orange-50 transition flex flex-col items-center min-h-[80px]"
-                    style={{ minWidth: 0 }}
-                  >
-                    <div className="text-base md:text-lg font-semibold mb-1 truncate" title={category.label}>{category.label}</div>
-                    <div className="text-xs text-gray-500">Xem sản phẩm</div>
-                  </Link>
-                ))}
-              </div>
-              {!showAllCategories && categories.length > 4 && (
-                <button
-                  className="mt-4 px-6 py-2 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition"
-                  onClick={() => setShowAllCategories(true)}
-                >
-                  Xem tất cả danh mục
-                </button>
-              )}
-              {showAllCategories && categories.length > 4 && (
-                <button
-                  className="mt-2 px-5 py-2 rounded-lg bg-gray-200 text-orange-600 font-semibold hover:bg-gray-300 transition"
-                  onClick={() => setShowAllCategories(false)}
-                >
-                  Ẩn bớt
-                </button>
-              )}
-            </section> */}
+        {/* Brand Sections */}
+        <BrandSection
+          logo={LogoMSI}
+          title="MSI Laptops"
+          brandSlug="laptop"
+          brand="laptop"
+          products={products}
+          getImageUrl={getImageUrl}
+          seriesList={["GS", "GT", "GE"]}
+        />
 
+        <BrandSection
+          logo={LogoDesktops}
+          title="MSI Desktops"
+          brandSlug="desktop"
+          brand="desktop"
+          products={products}
+          getImageUrl={getImageUrl}
+        />
 
+        <BrandSection
+          logo={LogoGaming}
+          title="Gaming Monitors"
+          brandSlug="monitor"
+          brand="monitor"
+          products={products}
+          getImageUrl={getImageUrl}
+        />
+      </div>
 
+      {/* Partner Logos */}
+      <div className="py-10 bg-white">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-center gap-12 overflow-x-auto scrollbar-hide">
+          {[LogoMSI1, LogoRazer, LogoThermaltake, LogoAdata, LogoHP, LogoGigabyte, LogoRoccat].map(
+            (src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt="Partner"
+                className="h-20 object-contain grayscale hover:grayscale-0 transition"
+              />
+            )
+          )}
+        </div>
+      </div>
 
-
-            {/*  Sản phẩm bán chạy */}
-            <section className="w-full flex flex-col items-center">
-              <div className="flex justify-between items-center w-full mb-2">
-                <h2 className="text-xl font-bold">🔥 Bán chạy nhất</h2>
-                <Link to="/category/bestseller" className="text-orange-600 hover:underline">
-                  Xem tất cả
-                </Link>
-              </div>
-              <ProductList products={bestseller} horizontal />
-            </section>
-
-            {/* Banner quảng cáo  */}
-            <section className="my-6 w-full flex justify-center">
-              <Link to="/promotions">
+      {/* Instagram Feed */}
+      <div className="py-12">
+        <div className="max-w-[1500px] mx-auto px-10">
+          <h2 className="text-xl font-bold mb-6">
+            Theo dõi chúng tôi trên Instagram để nhận tin tức & ưu đãi
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {new Array(8).fill(0).map((_, i) => (
+              <div key={i} className="bg-white shadow rounded-lg overflow-hidden">
                 <img
-                  src={BannerImg}
-                  alt="Promo Banner"
-                  className="rounded-xl shadow-lg mx-auto max-h-40 object-cover"
+                  src={`https://picsum.photos/400/300?random=${i}`}
+                  alt="Insta post"
+                  className="h-40 w-full object-cover"
                 />
-              </Link>
-            </section>
-
-            {/* Hàng mới về - sản phẩm random */}
-            <section className="my-12 w-full flex flex-col items-center">
-              <div className="flex justify-between items-center w-full mb-2 px-4">
-                <h2 className="text-xl font-bold">🌟 Hàng mới về</h2>
-                <span className="text-gray-500 text-sm cursor-pointer hover:underline">
-                  Xem tất cả
-                </span>
+                <div className="p-3 text-sm text-gray-600 line-clamp-3">
+                  Trải nghiệm sản phẩm gaming chất lượng, nâng tầm hiệu suất làm việc và
+                  giải trí.
+                </div>
+                <div className="p-3 text-xs text-gray-400">01/02/2025</div>
               </div>
-
-              <div className="max-w-5xl w-full mx-auto">
-                <Slider {...randomSettings}>
-                  {randomProducts.map((product) => (
-                    <div key={product.id} className="p-2 flex justify-center">
-                      <div className="bg-white rounded-lg shadow flex flex-col items-center py-4 px-2 h-full transition-transform duration-300 transform hover:scale-105 hover:shadow-lg">
-
-                        {/* Ảnh sản phẩm */}
-                        <img
-                          src={getImageUrl(product)}
-                          alt={product.name}
-                          className="h-28 w-full object-contain mb-2"
-                        />
-
-                        {/* Tên sản phẩm + icon NEW */}
-                        <div className="font-semibold text-base text-center mb-1 flex items-center justify-center">
-                          {product.name}
-
-                        </div>
-
-                        {/* Giá */}
-                        <div className="text-orange-600 font-bold mb-2 flex items-center justify-center">
-                          {product.price?.toLocaleString()} đ
-                          <img
-                            src={newimg}
-                            alt="new"
-                            className="h-5 w-5 object-contain ml-2"
-                          />
-                        </div>
-
-                        {/* Link chi tiết */}
-                        <Link
-                          to={`/product/${product.id}`}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          Xem chi tiết
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </Slider>
-              </div>
-            </section>
-
-
-            {/* Sản phẩm theo hãng */}
-            <section className="my-12 w-full flex flex-col items-center">
-              <div className="flex justify-between items-center w-full mb-2">
-                <h2 className="text-xl font-bold">🏷️ Sản phẩm theo hãng</h2>
-                {allBrandProducts.length > 8 && (
-                  <button
-                    onClick={() => navigate(`/brand/${selectedBrand}`)}
-                    className="text-orange-600 hover:underline font-semibold"
-                  >
-                    Xem tất cả
-                  </button>
-                )}
-              </div>
-              {/* Nút chọn hãng căn trái */}
-              <div className="flex gap-3 flex-wrap mb-4 justify-start w-full">
-                {brands.map(brand => (
-                  <button
-                    key={brand}
-                    className={`px-4 py-2 rounded-lg border font-semibold ${selectedBrand === brand ? "bg-orange-500 text-white" : "bg-white text-gray-700 hover:bg-orange-100"}`}
-                    onClick={() => handleBrandChange(brand)}
-                  >
-                    {brand}
-                  </button>
-                ))}
-              </div>
-              <div className="w-full">
-                {/* Hiện tối đa 8 sản phẩm */}
-                <ProductList products={brandProducts} horizontal={false} />
-              </div>
-            </section>
-
-            {/* Chương trình khuyến mãi - Slideshow ảnh tự động */}
-            <section className="my-12 w-full flex flex-col items-center">
-              <h2 className="text-2xl font-bold mb-4 text-center">🎉 Chương trình khuyến mãi</h2>
-              <div className="max-w-4xl w-full mx-auto">
-                <Slider {...promoSettings}>
-                  {promoImages.map((src, idx) => (
-                    <div key={idx} className="px-2 flex items-center justify-center">
-                      <img
-                        src={src}
-                        alt={`Khuyến mãi ${idx + 1}`}
-                        className="rounded-xl shadow object-cover h-24 md:h-32 w-full"
-                        style={{ maxWidth: 380, margin: "0 auto" }}
-                      />
-                    </div>
-                  ))}
-                </Slider>
-              </div>
-            </section>
-
-            {/* Chính sách & hỗ trợ */}
-            <section className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center w-full">
-              <div className="p-4 bg-white rounded-lg shadow">
-                <h3 className="font-semibold text-lg mb-2">Miễn phí vận chuyển</h3>
-                <p className="text-sm text-gray-600">Cho đơn hàng từ 500K</p>
-              </div>
-              <div className="p-4 bg-white rounded-lg shadow">
-                <h3 className="font-semibold text-lg mb-2">Hỗ trợ 24/7</h3>
-                <p className="text-sm text-gray-600">Tư vấn và giải đáp mọi lúc</p>
-              </div>
-              <div className="p-4 bg-white rounded-lg shadow">
-                <h3 className="font-semibold text-lg mb-2">Đổi trả 7 ngày</h3>
-                <p className="text-sm text-gray-600">Không hài lòng? Đổi dễ dàng</p>
-              </div>
-              <div className="p-4 bg-white rounded-lg shadow">
-                <h3 className="font-semibold text-lg mb-2">Thanh toán tiện lợi</h3>
-                <p className="text-sm text-gray-600">Nhiều hình thức: Momo, COD...</p>
-              </div>
-            </section>
+            ))}
           </div>
+        </div>
+      </div>
 
-          {/* SIDEBAR nhiều mục, căn giữa */}
-          <aside className="w-full lg:w-[320px] flex-shrink-0 flex flex-col items-center">
-            <div className="flex flex-col h-fit space-y-6 w-full items-center">
-              {/* Khuyến mãi HOT */}
-              <div className="w-full">
-                <div className="bg-orange-100 border-l-4 border-orange-500 rounded-xl shadow p-5 mb-4">
-                  <h3 className="text-xl font-bold mb-2 text-orange-600">🎁 Chương trình khuyến mãi</h3>
-                  <ul className="list-disc list-inside space-y-1 text-orange-900 text-sm">
-                    <li>
-                      <span className="font-semibold">Giảm 10% </span>cho đơn laptop &gt; 15tr
-                    </li>
-                    <li>
-                      <span className="font-semibold">Freeship</span> toàn quốc đến hết 30/6
-                    </li>
-                    <li>
-                      <span className="font-semibold">Tặng chuột không dây</span> cho đơn PC mới
-                    </li>
-                    <li>
-                      <Link to="/promotions" className="text-orange-600 hover:underline font-semibold">
-                        Xem tất cả chương trình &rarr;
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              {/* Hỗ trợ khách hàng */}
-              <div className="w-full bg-white rounded-xl shadow p-4 mb-2 flex flex-col items-center">
-                <h3 className="text-lg font-bold text-orange-500 mb-2">💬 Hỗ trợ khách hàng</h3>
-                <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm">
-                  <li>
-                    <Link to="/policy/return" className="hover:text-orange-500">
-                      Đổi trả & hoàn tiền
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/policy/shipping" className="hover:text-orange-500">
-                      Chính sách giao hàng
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/faq" className="hover:text-orange-500">
-                      Câu hỏi thường gặp (FAQ)
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              {/* Liên hệ nhanh */}
-              <div className="w-full bg-white rounded-xl shadow p-4 mb-2 flex flex-col items-center">
-                <h3 className="text-lg font-bold text-orange-500 mb-2">📞 Liên hệ nhanh</h3>
-                <div className="text-sm w-full">
-                  <div>
-                    <span className="font-semibold">Hotline:</span>{" "}
-                    <a href="tel:0398373833" className="text-blue-600 hover:underline">0398 373 833</a>
-                  </div>
-                  <div>
-                    <span className="font-semibold">Email:</span>{" "}
-                    <a href="mailto:thephach5@gmail.com" className="text-blue-600 hover:underline">thephach5@gmail.com</a>
-                  </div>
-                </div>
-              </div>
-              {/* Đăng ký nhận tin */}
-              <div className="w-full bg-white rounded-xl shadow p-4 flex flex-col items-center">
-                <h3 className="text-lg font-bold text-orange-500 mb-2">📬 Nhận ưu đãi mới</h3>
-                <form
-                  className="flex flex-col gap-2 w-full"
-                  onSubmit={e => { e.preventDefault(); alert("Đăng ký thành công!"); }}
-                >
-                  <input
-                    type="email"
-                    className="border rounded-lg px-3 py-2 text-sm w-full"
-                    placeholder="Nhập email của bạn"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="bg-orange-500 text-white rounded-lg px-3 py-2 font-semibold hover:bg-orange-600 transition"
-                  >
-                    Đăng ký
-                  </button>
-                </form>
-                <div className="text-xs text-gray-500 mt-1 text-center">
-                  Nhận bản tin khuyến mãi & cập nhật mới nhất từ shop.
-                </div>
-              </div>
-            </div>
-          </aside>
+      {/* Testimonial */}
+      <div className="bg-gray-50 py-12">
+        <div className="max-w-[900px] mx-auto text-center px-4">
+          <p className="italic text-lg text-gray-700 mb-6">
+            "Đơn hàng đầu tiên của tôi đến nơi trong tình trạng hoàn hảo. Dịch vụ tuyệt
+            vời, giao hàng nhanh chóng. Tôi sẽ tiếp tục mua sắm ở đây trong tương lai."
+          </p>
+          <p className="font-semibold text-gray-900">– Toma Brown</p>
+        </div>
+      </div>
+
+      {/* Services */}
+      <div className="grid md:grid-cols-3 gap-6 max-w-[1200px] mx-auto py-12 px-4">
+        <div className="bg-white p-6 rounded-lg shadow text-center">
+          <h3 className="font-bold text-lg mb-2">Hỗ trợ sản phẩm</h3>
+          <p className="text-gray-600 text-sm">
+            Bảo hành tận nơi lên đến 3 năm cho sự an tâm của bạn.
+          </p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow text-center">
+          <h3 className="font-bold text-lg mb-2">Tài khoản cá nhân</h3>
+          <p className="text-gray-600 text-sm">
+            Giảm giá, freeship và hỗ trợ kỹ thuật chuyên dụng.
+          </p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow text-center">
+          <h3 className="font-bold text-lg mb-2">Tiết kiệm tối đa</h3>
+          <p className="text-gray-600 text-sm">
+            Giảm đến 70% cho sản phẩm mới, luôn đảm bảo giá tốt nhất.
+          </p>
         </div>
       </div>
     </div>
