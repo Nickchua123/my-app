@@ -16,6 +16,7 @@ import { ToastContainer } from 'react-toastify';
 import PaymentResult from "./pages/PaymentResult";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
+import UserDashboard from "./pages/user/DashboardUser";
 import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/my-orders" element={<MyOrdersPage />} />
+            <Route path="/userdashboard" element={<UserDashboard />} />
 
             <Route path="/order-success" element={<OrderSuccessPage />} />
             <Route path="/vnpay/return" element={<PaymentResult />} />

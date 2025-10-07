@@ -31,6 +31,7 @@ const COLORS = ["#FF8042", "#00C49F", "#FFBB28", "#8884D8", "#FF6666"];
 
 export default function AdminDashboard() {
   const categories = useCategories();
+  console.log(categories);
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
 

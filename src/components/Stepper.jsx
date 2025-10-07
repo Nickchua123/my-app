@@ -19,7 +19,7 @@ export default function Stepper({ currentStep }) {
                     <div key={step.label} className="flex items-center gap-2">
                         <div className={`w-10 h-10 flex items-center justify-center rounded-full text-base font-semibold border-2
               ${isActive
-                                ? "bg-orange-500 text-white border-orange-500"
+                                ? "bg-blue-500 text-white border-blue-500"
                                 : isDone
                                     ? "bg-green-500 text-white border-green-500"
                                     : "bg-gray-200 text-gray-500 border-gray-300"}

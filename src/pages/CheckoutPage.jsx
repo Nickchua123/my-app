@@ -18,7 +18,7 @@ export default function CheckoutPage() {
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-orange-600 mb-4">Thanh toán</h1>
+            <h1 className="text-3xl font-bold text-black-600 mb-4">Thanh toán</h1>
 
             {/* Optional: Hiển thị tiến trình nếu bạn có */}
             <Stepper currentStep={2} />

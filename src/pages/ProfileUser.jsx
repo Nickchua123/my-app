@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 export default function ProfilePage() {
     const { currentUser, setCurrentUser } = useUser();
     const navigate = useNavigate();
+
     const [form, setForm] = useState({
         name: "",
         email: "",
@@ -13,12 +14,12 @@ export default function ProfilePage() {
         address: "",
         avatar: "",
         gender: "",
+        password: "",
     });
-
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [isEditable, setIsEditable] = useState(false); // Trạng thái chỉnh sửa
+    const [isEditable, setIsEditable] = useState(false);
 
     useEffect(() => {
         if (currentUser) {
@@ -30,29 +31,26 @@ export default function ProfilePage() {
                 address: currentUser.address,
                 avatar: currentUser.avatar,
                 gender: currentUser.gender,
-                password: currentUser.password || "", // Đảm bảo password cũng được lấy nếu cần
+                password: currentUser.password || "",
             });
-            // Cập nhật ảnh avatar vào preview nếu có
-            setAvatarPreview(currentUser.avatar ? `http://localhost:8080/storage/user-${currentUser.id}/${currentUser.avatar}` : "Không set đc avatar");
+            setAvatarPreview(
+                currentUser.avatar
+                    ? `http://localhost:8080/storage/user-${currentUser.id}/${currentUser.avatar}`
+                    : null
+            );
         }
-
     }, [currentUser]);
 
-    if (!currentUser) {
-        console.log("Current k có ", currentUser);
-        return null;
-    }
+    if (!currentUser) return null;
 
     const getAvatarLetter = (name) => name?.charAt(0)?.toUpperCase() || "U";
 
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
+    const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
     const handleAvatarChange = (e) => {
         const file = e.target.files[0];
         setAvatarFile(file);
-        setAvatarPreview(URL.createObjectURL(file)); // Preview ảnh trước khi upload
+        setAvatarPreview(URL.createObjectURL(file));
     };
 
     const handleSubmit = async (e) => {
@@ -61,7 +59,6 @@ export default function ProfilePage() {
 
         let avatarPath = form.avatar;
 
-        // 1. Upload avatar lên server nếu có chọn file mới
         if (avatarFile) {
             const data = new FormData();
             data.append("file", avatarFile);
@@ -71,178 +68,154 @@ export default function ProfilePage() {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
                 avatarPath = uploadRes.data.data?.fileName || avatarPath;
-            } catch (err) {
+            } catch {
                 alert("Lỗi upload ảnh đại diện!");
                 setLoading(false);
                 return;
             }
         }
 
-        // 2. Gửi request update user (cập nhật avatar)
         try {
             const res = await api.put(`/users/${currentUser.id}`, {
                 ...form,
-                avatar: avatarPath, // Đảm bảo trường avatar được cập nhật
+                avatar: avatarPath,
             });
-            console.log("Đang chỉnh sửa id :", currentUser.id);
-            alert("Cập nhật thành công nhé!");
 
-            // Cập nhật lại thông tin người dùng trong context và lưu vào localStorage
-            if (typeof setCurrentUser === "function") {
-                setCurrentUser({ ...res.data.data, avatar: avatarPath });
-                localStorage.setItem("currentUser", JSON.stringify(res.data.data)); // Lưu vào localStorage
-            }
-
-            navigate("/"); // Điều hướng về trang chủ sau khi cập nhật thành công
-        } catch (err) {
-            alert("Lỗi cập nhật thông tin sai !");
-            console.log(err);
+            alert("Cập nhật thành công!");
+            setCurrentUser({ ...res.data.data, avatar: avatarPath });
+            localStorage.setItem("currentUser", JSON.stringify(res.data.data));
+            navigate("/");
+        } catch {
+            alert("Lỗi cập nhật thông tin!");
         } finally {
             setLoading(false);
         }
     };
 
-    // Hàm bật/tắt chỉnh sửa
-    const toggleEdit = () => {
-        setIsEditable(!isEditable);
-    };
-
     return (
-        <div className="max-w-3xl mx-auto my-8 bg-white rounded-xl shadow-xl p-8 space-y-6">
+        <div className="max-w-3xl mx-auto my-8 bg-white rounded-xl shadow-xl p-8 space-y-6 border-1 border-gray-500">
             <h2 className="text-3xl font-bold text-center text-gray-700 mb-6">Thông tin cá nhân</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="flex justify-center">
-                    <div className="relative">
-                        {currentUser.avatar || avatarPreview ? (
-                            <img
-                                src={avatarPreview || form.avatar || currentUser.avatar}
-                                alt="avatar"
-                                className="w-32 h-32 rounded-full object-cover border-4 border-gray-300 shadow-lg cursor-pointer transition-transform duration-200 ease-in-out transform hover:scale-110 hover:opacity-90"
-                                onClick={() => document.getElementById("avatarInput").click()} // Khi nhấn vào ảnh sẽ mở hộp thoại chọn ảnh
-                            />
-                        ) : (
-                            <span className="w-32 h-32 flex items-center justify-center bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 text-white text-6xl font-semibold rounded-full cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl">
-                                {getAvatarLetter(currentUser.name)} {/* Hiển thị chữ cái đầu tiên */}
-                            </span>
-                        )}
-                        <input
-                            id="avatarInput"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleAvatarChange}
-                            className="absolute bottom-0 right-0 opacity-0 cursor-pointer w-32 h-32"
+
+            {/* Avatar */}
+            <div className="flex justify-center">
+                <div className="relative">
+                    {avatarPreview || currentUser.avatar ? (
+                        <img
+                            src={avatarPreview || `http://localhost:8080/storage/user-${currentUser.id}/${currentUser.avatar}`}
+                            alt="avatar"
+                            className="w-32 h-32 rounded-full object-cover border-4 border-gray-300 shadow-lg cursor-pointer hover:scale-110 transition-transform duration-200"
+                            onClick={() => document.getElementById("avatarInput").click()}
                         />
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block font-semibold text-gray-600">Họ tên</label>
+                    ) : (
+                        <div className="w-32 h-32 flex items-center justify-center bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 text-white text-6xl font-semibold rounded-full cursor-pointer hover:scale-105 transition-transform duration-200">
+                            {getAvatarLetter(currentUser.name)}
+                        </div>
+                    )}
                     <input
-                        name="name"
-                        value={form.name}
-                        onChange={handleChange}
-                        className="border border-gray-300 rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        disabled={!isEditable}
-                        required
+                        id="avatarInput"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     />
                 </div>
+            </div>
 
-                <div>
-                    <label className="block font-semibold text-gray-600">Email</label>
-                    <input
-                        name="email"
-                        type="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        className="border border-gray-300 rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        disabled
-                    />
-                </div>
-
-                <div>
-                    <label className="block font-semibold text-gray-600">Tuổi</label>
-                    <input
-                        name="age"
-                        value={form.age}
-                        onChange={handleChange}
-                        className="border border-gray-300 rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        type="number"
-                        disabled={!isEditable}
-                    />
-                </div>
-
-                <div>
-                    <label className="block font-semibold text-gray-600">Địa chỉ</label>
-                    <input
-                        name="address"
-                        value={form.address}
-                        onChange={handleChange}
-                        className="border border-gray-300 rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        disabled={!isEditable}
-                    />
-                </div>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <InputField
+                    label="Họ tên"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    disabled={!isEditable}
+                    required
+                />
+                <InputField
+                    label="Email"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    disabled
+                />
+                <InputField
+                    label="Tuổi"
+                    name="age"
+                    type="number"
+                    value={form.age}
+                    onChange={handleChange}
+                    disabled={!isEditable}
+                />
+                <InputField
+                    label="Địa chỉ"
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    disabled={!isEditable}
+                />
 
                 {/* Giới tính */}
                 <div>
-                    <label className="block font-semibold text-gray-600">Giới tính</label>
-                    <div className="flex items-center space-x-4">
-                        <label>
-                            <input
-                                type="radio"
-                                name="gender"
-                                value="MALE"
-                                onChange={handleChange}
-                                checked={form.gender === "MALE"}
-                                disabled={!isEditable}
-                                className="mr-2"
-                            />
-                            Nam
-                        </label>
-                        <label>
-                            <input
-                                type="radio"
-                                name="gender"
-                                value="FEMALE"
-                                onChange={handleChange}
-                                checked={form.gender === "FEMALE"}
-                                disabled={!isEditable}
-                                className="mr-2"
-                            />
-                            Nữ
-                        </label>
-                        <label>
-                            <input
-                                type="radio"
-                                name="gender"
-                                value="OTHER"
-                                onChange={handleChange}
-                                checked={form.gender === "OTHER"}
-                                disabled={!isEditable}
-                                className="mr-2"
-                            />
-                            Khác
-                        </label>
+                    <label className="block font-semibold text-gray-600 mb-2">Giới tính</label>
+                    <div className="flex items-center gap-4">
+                        {["MALE", "FEMALE", "OTHER"].map((g) => (
+                            <label key={g} className="flex items-center gap-1">
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value={g}
+                                    checked={form.gender === g}
+                                    onChange={handleChange}
+                                    disabled={!isEditable}
+                                    className="cursor-pointer"
+                                />
+                                {g === "MALE" ? "Nam" : g === "FEMALE" ? "Nữ" : "Khác"}
+                            </label>
+                        ))}
                     </div>
                 </div>
 
                 <input type="hidden" name="password" value={form.password} />
 
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition duration-300"
-                >
-                    {loading ? "Đang lưu..." : "Lưu thay đổi"}
-                </button>
+                {isEditable && (
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition duration-300"
+                    >
+                        {loading ? "Đang lưu..." : "Lưu thay đổi"}
+                    </button>
+                )}
             </form>
 
             <button
-                type="button"
                 onClick={() => setIsEditable(!isEditable)}
-                className="w-full bg-blue-500 text-white font-semibold py-3 rounded-lg hover:bg-blue-600 transition duration-300"
+                className={`w-full font-semibold py-3 rounded-lg transition duration-300 ${isEditable
+                    ? "bg-gray-400 text-white hover:bg-gray-500"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
+                    }`}
             >
                 {isEditable ? "Hủy chỉnh sửa" : "Chỉnh sửa thông tin"}
             </button>
+        </div>
+    );
+}
+
+// Component input field tái sử dụng
+function InputField({ label, name, type = "text", value, onChange, disabled, required }) {
+    return (
+        <div>
+            <label className="block font-semibold text-gray-600 mb-1">{label}</label>
+            <input
+                name={name}
+                type={type}
+                value={value}
+                onChange={onChange}
+                disabled={disabled}
+                required={required}
+                className="border border-gray-300 rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+            />
         </div>
     );
 }

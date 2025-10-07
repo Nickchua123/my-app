@@ -98,7 +98,7 @@ export default function HomePage() {
 
   return (
     <div className="bg-gray-50 min-h-screen w-full">
-      <div className="max-w-[1600px] mx-auto px-4">
+      <div className="max-w-[1500px] mx-auto px-4">
         {/* Banner */}
         <section className="mb-12">
           <Slider {...bannerSettings}>

@@ -1,25 +1,43 @@
 import { useCart } from "../context/CartContext";
 import api from "../Config/axiosConfig";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { FiX, FiChevronLeft, FiChevronRight, FiShoppingCart } from "react-icons/fi";
-
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingCart,
+  Trash2,
+  CheckSquare,
+  Square,
+} from "lucide-react";
 
 export default function CartMenu({ onClose }) {
   const { cartItems, setCartItems } = useCart();
   const [loadingId, setLoadingId] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
 
-  // Load cart on mount
   useEffect(() => {
     api.get("/cart").then((res) => {
       const data = res.data.data || res.data || [];
       setCartItems(data);
-      setSelectedIds(data.map((item) => item.id)); // chọn tất cả mặc định
+      setSelectedIds(data.map((item) => item.id));
     });
   }, []);
+
+  // ✅ Đóng popup khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        onClose?.();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [onClose]);
 
   const toggleSelect = (itemId) => {
     setSelectedIds((prev) =>
@@ -38,9 +56,8 @@ export default function CartMenu({ onClose }) {
         quantity: item.quantity + delta,
       });
       const res = await api.get("/cart");
-      const data = res.data.data || res.data;
-      setCartItems(data);
-    } catch (e) {
+      setCartItems(res.data.data || res.data);
+    } catch {
       toast.error("Cập nhật giỏ hàng thất bại!");
     }
     setLoadingId(null);
@@ -51,11 +68,10 @@ export default function CartMenu({ onClose }) {
     try {
       await api.delete(`/cart/${item.product.id}`);
       const res = await api.get("/cart");
-      const data = res.data.data || res.data;
-      setCartItems(data);
+      setCartItems(res.data.data || res.data);
       setSelectedIds((prev) => prev.filter((id) => id !== item.id));
       toast.success(`Đã xóa ${item.product.name}`);
-    } catch (e) {
+    } catch {
       toast.error("Xóa sản phẩm thất bại!");
     }
     setLoadingId(null);
@@ -68,40 +84,63 @@ export default function CartMenu({ onClose }) {
       0
     );
 
+  // =================== CART EMPTY ===================
   if (!cartItems || cartItems.length === 0) {
     return (
-      <div className="w-96 bg-white rounded-lg shadow-lg p-6 border border-gray-200 text-center text-gray-500 relative">
+      <div
+        ref={dropdownRef}
+        className="w-96 bg-white rounded-xl shadow-lg p-6 border border-gray-200 text-center text-gray-500 relative"
+      >
         {onClose && (
-          <button className="absolute top-3 right-3 text-gray-400 hover:text-red-400" onClick={onClose}>
-            <FiX size={20} />
+          <button
+            className="absolute top-3 right-3 text-gray-400 hover:text-red-500"
+            onClick={onClose}
+          >
+            <X size={20} />
           </button>
         )}
-        <FiShoppingCart className="mx-auto text-3xl mb-2 text-gray-400" />
+        <ShoppingCart className="mx-auto text-black text-4xl mb-3 text-gray-400" />
         <p className="font-medium text-gray-600">Giỏ hàng của bạn đang trống</p>
       </div>
     );
   }
 
+  // =================== CART WITH ITEMS ===================
   return (
-    <div className="w-96 bg-white rounded-lg shadow-xl p-6 border border-gray-200 relative">
+    <div
+      ref={dropdownRef}
+      className="w-96 bg-white rounded-xl shadow-2xl p-6 border border-gray-100 relative"
+    >
       {onClose && (
-        <button className="absolute top-3 right-3 text-gray-400 hover:text-red-400" onClick={onClose}>
-          <FiX size={20} />
+        <button
+          className="absolute top-3 right-3 text-gray-400 hover:text-red-500"
+          onClick={onClose}
+        >
+          <X size={20} />
         </button>
       )}
-      <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-        <FiShoppingCart className="text-xl text-orange-500" /> Giỏ hàng của bạn
+
+      <h3 className="text-lg font-semibold mb-5 text-gray-800 flex items-center gap-2">
+        <ShoppingCart className="text-xl text-black-500" /> Giỏ hàng của bạn
       </h3>
 
-      <ul className="max-h-72 overflow-y-auto pr-1 custom-scrollbar">
+      <ul className="max-h-72 overflow-y-auto pr-2 custom-scrollbar divide-y divide-gray-100">
         {cartItems.map((item) => (
-          <li key={item.id} className="flex items-center gap-3 py-3 border-b last:border-none">
-            <input
-              type="checkbox"
-              className="mt-1"
-              checked={selectedIds.includes(item.id)}
-              onChange={() => toggleSelect(item.id)}
-            />
+          <li
+            key={item.id}
+            className="flex items-center gap-3 py-3 transition hover:bg-gray-50 rounded-lg px-1"
+          >
+            <button
+              onClick={() => toggleSelect(item.id)}
+              className="text-gray-500 hover:text-blue-500"
+            >
+              {selectedIds.includes(item.id) ? (
+                <CheckSquare size={20} />
+              ) : (
+                <Square size={20} />
+              )}
+            </button>
+
             <img
               src={
                 item.product.images?.[0]
@@ -109,25 +148,34 @@ export default function CartMenu({ onClose }) {
                   : "/no-image.png"
               }
               alt={item.product.name}
-              className="w-14 h-14 object-cover rounded border"
+              className="w-14 h-14 object-cover rounded-md border border-gray-200"
             />
-            <div className="flex-1">
-              <div className="text-sm font-medium text-gray-800 truncate">{item.product.name}</div>
+
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-gray-800 truncate">
+                {item.product.name}
+              </div>
+              <div className="text-sm text-gray-500">
+                ₫{(item.product.price || 0).toLocaleString()}
+              </div>
+
               <div className="flex items-center gap-1 mt-1">
                 <button
                   onClick={() => updateQuantity(item, -1)}
                   disabled={item.quantity <= 1 || loadingId === item.id}
                   className="px-2 border rounded text-sm hover:bg-gray-100 disabled:opacity-40"
                 >
-                  <FiChevronLeft />
+                  <ChevronLeft size={16} />
                 </button>
-                <span className="px-2 text-sm font-semibold">{item.quantity}</span>
+                <span className="px-2 text-sm font-semibold">
+                  {item.quantity}
+                </span>
                 <button
                   onClick={() => updateQuantity(item, 1)}
                   disabled={loadingId === item.id}
                   className="px-2 border rounded text-sm hover:bg-gray-100 disabled:opacity-40"
                 >
-                  <FiChevronRight />
+                  <ChevronRight size={16} />
                 </button>
                 <button
                   onClick={() => removeItem(item)}
@@ -135,7 +183,7 @@ export default function CartMenu({ onClose }) {
                   className="ml-2 p-1 text-red-500 hover:bg-red-100 rounded disabled:opacity-40"
                   title="Xoá"
                 >
-                  <FiX size={16} />
+                  <Trash2 size={16} />
                 </button>
               </div>
             </div>
@@ -143,14 +191,15 @@ export default function CartMenu({ onClose }) {
         ))}
       </ul>
 
-      {/* <div className="flex justify-between items-center mt-5 pt-4 border-t">
+      <div className="flex justify-between items-center mt-5 pt-4 border-t">
         <span className="font-medium text-gray-700">Tổng cộng:</span>
-        <span className="font-bold text-green-600 text-lg">₫{total.toLocaleString()}</span>
-      </div> */}
-
+        <span className="font-bold text-black text-lg">
+          ₫{total.toLocaleString()}
+        </span>
+      </div>
 
       <button
-        className="w-full mt-5 py-2.5 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-semibold transition"
+        className="w-full mt-5 py-2.5 rounded-md bg-blue-500 hover:bg-blue-600 text-white font-semibold transition"
         onClick={() => {
           if (selectedIds.length === 0) {
             toast.warning("Vui lòng chọn ít nhất một sản phẩm để thanh toán!", {
@@ -160,11 +209,11 @@ export default function CartMenu({ onClose }) {
             return;
           }
 
-          if (onClose) onClose();
+          onClose?.();
           navigate("/cart", { state: { selectedIds } });
         }}
       >
-        Chọn sản phẩm thanh toán ({selectedIds.length})
+        Thanh toán ({selectedIds.length})
       </button>
     </div>
   );
